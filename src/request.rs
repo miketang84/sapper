@@ -1,12 +1,12 @@
 
-use hyper::server::Request;
+use hyper::server::Request as HyperRequest;
 use hyper::method::Method;
 use hyper::header::Headers;
 use hyper::version::HttpVersion;
 use std::collections::HashMap;
 
-pub struct SRequest {
-    raw_request: Request,
+pub struct Request {
+    raw_request: HyperRequest,
     
     // only path part of this url
     path: String,
@@ -24,8 +24,8 @@ pub struct SRequest {
     
 }
 
-impl SRequest {
-    pub fn new() -> SRequest {
+impl Request {
+    pub fn new() -> Request {
         // here, we should fill those extra fields from raw_request
         
         

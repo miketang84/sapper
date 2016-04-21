@@ -1,17 +1,19 @@
 
-use hyper::server::Response;
-use hyper::status::StatusCode
+use hyper::server::Response as HyperResponse;
+use hyper::status::StatusCode;
+use hyper::header::Headers;
 
-pub struct SResponse {
-    raw_response: Response,
-    body: String,
-    
+pub struct Response {
+    status: StatusCode,
+    headers: Headers,
+    body: Option<String>,
 }
 
 
-impl SResponse {
-    pub fn new() -> SResponse {
+impl Response {
+    pub fn new() -> Response {
         // create this object
+        
     }
     
     pub fn status(&self) -> StatusCode {
@@ -37,4 +39,7 @@ impl SResponse {
     pub fn write_body(&mut self, body: String) {
         
     }
+    
+    
 }
+
