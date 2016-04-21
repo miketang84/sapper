@@ -11,25 +11,31 @@ pub struct Request {
     // only path part of this url
     path: String,
     // query string part of this url
-    query_string: String,
+    query_string: Option<String>,
     // if has body, keep it as raw here
     raw_body: Option<String>,
     // params pair parsed from url query string
-    queries: HashMap<String, String>,
+    queries: Option<HashMap<String, String>>,
     // params pair parsed from body
     // if body is json, limit it to one level
-    body_params: HashMap<String, String>,
+    body_params: Option<HashMap<String, String>>,
     // combined params of queries and body_params
-    full_params: HashMap<String, String>,
+    full_params: Option<HashMap<String, String>>,
     
 }
 
 impl Request {
-    pub fn new() -> Request {
+    pub fn new(raw_request: HyperRequest) -> Request {
         // here, we should fill those extra fields from raw_request
-        
-        
-        
+        Request {
+            raw_request: raw_request,
+            path: "/".to_owned(),
+            query_string: None,
+            raw_body: None,
+            queries: None,
+            body_params: None,
+            full_params: None
+        }
     }
     
     pub fn method(&self) -> &Method {
@@ -48,11 +54,11 @@ impl Request {
         &self.path
     }
     
-    pub fn query(&self) -> &HashMap<String, String> {
+    pub fn query(&self) -> &Option<HashMap<String, String>> {
         &self.queries
     }
     
-    pub fn body(&self) -> &HashMap<String, String> {
+    pub fn body(&self) -> &Option<HashMap<String, String>> {
         &self.body_params
     }
     
