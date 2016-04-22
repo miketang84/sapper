@@ -16,7 +16,7 @@ mod request;
 use request::Request;
 mod response;
 use response::Response;
-
+use router::Router;
 
 
 pub enum Error {
@@ -31,28 +31,27 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 
 
 // all handler function in each module should fit this Handler trait
-trait SHandler {
+pub trait SHandler {
     fn handle(&self, req: &mut Request) -> Result<Response>;
 }
 
 
-trait SModule {
+pub trait SModule {
+    fn before(&self, &mut Request) -> Result<()>;
+    
+    fn after(&self, &Request, &mut Response) -> Result<()>;
+    
+    // here add routers ....
+    fn router(&self, router: &mut Router, prefix: &str) -> Router;
+    
+}
+
+pub trait SAppWrapper {
     fn before(&mut Request) -> Result<()>;
     
     fn after(&Request, &mut Response) -> Result<()>;
     
-    // here add routers ....
-    fn router() -> Router {
-        // need to use Router struct here
-        
-    }
-    
-    // set the module prefix path
-    // fn prefix(&mut self) -> &mut self;
-    // add url router to this module, can chain
-    // fn add_route(&mut self) -> &mut self;
 }
-
 
 // later will add more fields
 pub struct SApp<T: SModule> {
@@ -63,8 +62,9 @@ pub struct SApp<T: SModule> {
     // module vector, no need
     // pub modules: Vec<T>,
     // routers, keep one big router table
-    pub router: Router,
-    
+    pub router: SRouter,
+    // wrapped router, add global and module router wrapper
+    pub router_wrap: Router,
     // tmp for test
     pub res_str: String
 }
@@ -90,13 +90,17 @@ impl<T> SApp<T: SModule> {
     pub fn add_smodule(&mut self, prefix: &str,  sm: T) -> &mut self {
         
         // get the sm router
+        // pass self.router in
         sm.router(&mut self.router, prefix);
         // combile this router to global big router
         // create a new closure, containing 
+        //      0. execute sapp.before();
         //      1. execute sm.before();
         //      2. execute a_router map pair value part function;
         //      3. execute sm.after();
-        // assign this new closure to the router map pair  prefix + url part 
+        //      4. execute sapp.after();
+        // fill the self.router_wrap finally
+        // assign this new closure to the router_wrap router map pair  prefix + url part 
         
         self
         
@@ -117,7 +121,7 @@ impl HyperHandler<HttpStream> for SApp {
                     // make swiftrs request from hyper request
                     let mut sreq = Request::new(req, &path[..]);
                     
-                    // Need more work
+                    // XXX: Need more work
                     self.router.handle_method(req, &path).unwrap_or_else(||
                         match req.method {
                             method::Options => Ok(self.handle_options(&path)),

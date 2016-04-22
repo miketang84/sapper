@@ -9,7 +9,22 @@ extern crate log;
 
 mod biz;
 use biz::Biz;
+use sapp::SApp;
+use sapp::SAppWrapper;
+
+// must impl it
+// total entry and exitice
+impl SAppWrapper for SApp {
+    fn before(&mut Request) -> Result<()> {
         
+    }
+    
+    fn after(&Request, &mut Response) -> Result<()> {
+        
+    }
+}
+
+
 fn main() {
     env_logger::init().unwrap();
     

@@ -1,4 +1,5 @@
 use sapp::Result;
+use sapp::SModule;
 use router::Router;
 use request::Request;
 use response::Response;
@@ -33,7 +34,7 @@ impl SModule for Biz {
         Ok(())
     }
     
-    fn after(&self, &mut Response) -> Result<()> {
+    fn after(&self, &Request, &mut Response) -> Result<()> {
         
         Ok(())
     }
@@ -41,6 +42,8 @@ impl SModule for Biz {
     // here add routers ....
     fn router(&self, router: &mut Router, prefix: &str) {
         // need to use Router struct here
+        // XXX: here could not write as this, should record first, not parse it now
+        
         
         router.get("/", Biz::index);
         router.get("/test", Biz::test);
