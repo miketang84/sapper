@@ -1,8 +1,8 @@
 
-use hyper::server::Response as HyperResponse;
 use hyper::status::StatusCode;
 use hyper::header::Headers;
 
+#[derive(Default)]
 pub struct Response {
     status: StatusCode,
     headers: Headers,
@@ -13,31 +13,30 @@ pub struct Response {
 impl Response {
     pub fn new() -> Response {
         // create this object
+        let res: Response = Default();
         
+        res
     }
     
     pub fn status(&self) -> StatusCode {
-        
+        self.status
     }
     
     pub fn set_status(&mut self, status: StatusCode) {
-        self.raw_response.set_status(status);
+        self.status = status;
     }
     
-    pub fn version(&self) -> &HttpVersion {
-        self.raw_response.version()
-    }
     
     pub fn headers(&self) -> &Headers {
-        self.raw_response.headers()
+        &self.headers
     }
     
     pub fn headers_mut(&self) -> &mut Headers {
-        self.raw_response.headers_mut()
+        &mut self.headers
     }
     
     pub fn write_body(&mut self, body: String) {
-        
+        self.body = Some(body)
     }
     
     

@@ -5,6 +5,7 @@ use hyper::header::Headers;
 use hyper::version::HttpVersion;
 use std::collections::HashMap;
 
+#[derive(Default)]
 pub struct Request {
     raw_request: HyperRequest,
     
@@ -22,21 +23,38 @@ pub struct Request {
     // combined params of queries and body_params
     full_params: Option<HashMap<String, String>>,
     // ext key value pair
-    ext: Option<HashMap<String, String>>
+    // ext: Option<HashMap<String, String>>
     
 } 
 
 impl Request {
-    pub fn new(raw_request: HyperRequest) -> Request {
-        // here, we should fill those extra fields from raw_request
-        Request {
-            raw_request: raw_request,
-            path: "".to_owned(),
-            query_string: None,
-            raw_body: None,
-            queries: None,
-            body_params: None,
-            full_params: None
+    pub fn new(raw_request: HyperRequest, pathstr: &str) -> Request {
+        // seperate path and query_string
+        let pathvec: Vec<&str> = path.split('?').collect();
+        // if only path part
+        if pathvec.len() = 1 {
+            // here, we should fill those extra fields from raw_request
+            Request {
+                raw_request: raw_request,
+                path: pathvec[0].to_owned(),
+                query_string: None,
+                raw_body: None,
+                queries: None,
+                body_params: None,
+                full_params: None
+            }
+        }
+        else {
+            // if has query_string
+            Request {
+                raw_request: raw_request,
+                path: pathvec[0].to_owned(),
+                query_string: Some(pathvec[1].to_owned()),
+                raw_body: None,
+                queries: None,
+                body_params: None,
+                full_params: None
+            }
         }
     }
     
@@ -56,6 +74,14 @@ impl Request {
         &self.path
     }
     
+    pub fn query_string(&self) -> &Option<String> {
+        &self.query_string
+    }
+    
+    pub fn raw_body(&self) -> &Option<String> {
+        &self.raw_body
+    }
+    
     pub fn query(&self) -> &Option<HashMap<String, String>> {
         &self.queries
     }
@@ -64,7 +90,9 @@ impl Request {
         &self.body_params
     }
     
-    
+    pub fn params(&self) -> &Option<HashMap<String, String>> {
+        &self.full_params
+    }
     
     
 }

@@ -163,27 +163,27 @@ impl Router {
     }
 }
 
-impl Key for Router { type Value = Params; }
+// impl Key for Router { type Value = Params; }
 
-impl Handler for Router {
-    fn handle(&self, req: &mut Request) -> IronResult<Response> {
-        let path = req.url.path.join("/");
+// impl Handler for Router {
+//     fn handle(&self, req: &mut Request) -> IronResult<Response> {
+//         let path = req.url.path.join("/");
 
-        self.handle_method(req, &path).unwrap_or_else(||
-            match req.method {
-                method::Options => Ok(self.handle_options(&path)),
-                // For HEAD, fall back to GET. Hyper ensures no response body is written.
-                method::Head => {
-                    req.method = method::Get;
-                    self.handle_method(req, &path).unwrap_or(
-                        Err(IronError::new(NoRoute, status::NotFound))
-                    )
-                }
-                _ => Err(IronError::new(NoRoute, status::NotFound))
-            }
-        )
-    }
-}
+//         self.handle_method(req, &path).unwrap_or_else(||
+//             match req.method {
+//                 method::Options => Ok(self.handle_options(&path)),
+//                 // For HEAD, fall back to GET. Hyper ensures no response body is written.
+//                 method::Head => {
+//                     req.method = method::Get;
+//                     self.handle_method(req, &path).unwrap_or(
+//                         Err(IronError::new(NoRoute, status::NotFound))
+//                     )
+//                 }
+//                 _ => Err(IronError::new(NoRoute, status::NotFound))
+//             }
+//         )
+//     }
+// }
 
 /// The error thrown by router if there is no matching route,
 /// it is always accompanied by a NotFound response.

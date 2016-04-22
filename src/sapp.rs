@@ -20,7 +20,7 @@ pub enum Route {
 }
 
 // all handler function in each module should fit this Handler trait
-trait Handler {
+trait SHandler {
     fn handle(&self, req: &mut Request) -> Result<Response, SError> {
         
     }
