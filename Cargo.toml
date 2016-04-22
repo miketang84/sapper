@@ -7,3 +7,5 @@ authors = ["Mike Tang <miketang84@outlook.com>"]
 hyper = {path="../../hyper"}
 log = "0.3"
 env_logger = "0.3"
+route-recognizer = "0.1"
+

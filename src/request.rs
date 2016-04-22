@@ -21,6 +21,8 @@ pub struct Request {
     body_params: Option<HashMap<String, String>>,
     // combined params of queries and body_params
     full_params: Option<HashMap<String, String>>,
+    // ext key value pair
+    ext: Option<HashMap<String, String>>
     
 } 
 

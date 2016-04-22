@@ -13,39 +13,92 @@ mod response;
 use response::Response;
 
 
-// struct Echo {
-//     buf: Vec<u8>,
-//     read_pos: usize,
-//     write_pos: usize,
-//     eof: bool,
-//     route: Route,
-// }
 
-// enum Route {
-//     NotFound,
-//     Got,
-//     // Echo(Body),
-// }
+pub enum Route {
+    NotFound,
+    Got,
+}
 
-// #[derive(Clone, Copy)]
-// enum Body {
-//     Len(u64),
-//     Chunked
-// }
+// all handler function in each module should fit this Handler trait
+trait Handler {
+    fn handle(&self, req: &mut Request) -> Result<Response, SError> {
+        
+    }
+}
+
+
+trait SModule {
+    fn before(&mut Request) -> Result<(), SError>;
+    
+    fn after(&Request, &mut Response) -> Result<(), SError>;
+    
+    // here add routers ....
+    fn router() -> Router {
+        // need to use Router struct here
+        
+    }
+    
+    // set the module prefix path
+    // fn prefix(&mut self) -> &mut self;
+    // add url router to this module, can chain
+    // fn add_route(&mut self) -> &mut self;
+}
+
+
+// later will add more fields
+pub struct SApp<T: SModule> {
+    // got it or not
+    pub route: Route,
+    // response deliver
+    pub response: Option<Response>,
+    // module vector, no need
+    // pub modules: Vec<T>,
+    // routers, keep one big router table
+    pub routers: RouterTable,
+    
+    // tmp for test
+    pub res_str: String
+}
+
+impl SApp {
+    pub fn new() -> SApp {
+        SApp {
+            route: Route::NotFound,
+            response: None,
+            routers: Default(),
+            // for test
+            res_str: "".to_string()
+        }
+    }
+    
+    pub fn hello (&mut self) -> String {
+        let res_str = "hello swift rs.";
+        res_str.to_string()
+    }
+    
+    // add methods of this smodule
+    // prefix:  such as '/user'
+    pub fn add_smodule<T: SModule>(&mut self, prefix: &str, sm: T) -> &mut self {
+        
+        // get the sm router
+        let a_router = sm.router();
+        // combile this router to global big router
+        // create a new closure, containing 
+        //      1. execute sm.before();
+        //      2. execute a_router map pair value part function;
+        //      3. execute sm.after();
+        // assign this new closure to the router map pair  prefix + url part 
+        
+        
+        
+    }
+    
+    
+}
+
 
 static INDEX: &'static [u8] = b"Welcome to swift-rs.";
 
-// impl Echo {
-//     fn new() -> Echo {
-//         Echo {
-//             buf: vec![0; 4096],
-//             read_pos: 0,
-//             write_pos: 0,
-//             eof: false,
-//             route: Route::NotFound,
-//         }
-//     }
-// }
 
 impl Handler<HttpStream> for SApp {
     fn on_request(&mut self, req: Request) -> Next {
@@ -169,76 +222,3 @@ impl Handler<HttpStream> for SApp {
         }
     }
 }
-
-
-pub enum Route {
-    NotFound,
-    Got,
-}
-
-trait SModule {
-    fn before(&mut Request) -> Result<(), SError>;
-    
-    fn after(&mut Response) -> Result<(), SError>;
-    
-    // here add routers ....
-    fn router() -> Router {
-        // need to use Router struct here
-        
-    }
-    
-    // set the module prefix path
-    // fn prefix(&mut self) -> &mut self;
-    // add url router to this module, can chain
-    // fn add_route(&mut self) -> &mut self;
-}
-
-
-// later will add more fields
-pub struct SApp<T: SModule> {
-    // got it or not
-    pub route: Route,
-    // response deliver
-    pub response: Option<Response>,
-    // module vector, no need
-    // pub modules: Vec<T>,
-    // routers, keep one big router table
-    pub routers: RouterTable,
-    // tmp for test
-    pub res_str: String
-}
-
-impl SApp {
-    pub fn new() -> SApp {
-        SApp {
-            route: Route::NotFound,
-            response: None,
-            modules: vec![],
-            res_str: "".to_string()
-        }
-    }
-    
-    pub fn hello (&mut self) -> String {
-        let res_str = "hello swift rs.";
-        res_str.to_string()
-    }
-    
-    // add methods of this smodule
-    pub fn add_smodule<T: SModule>(&mut self, sm: T) -> &mut self {
-        
-        // get the sm router
-        let a_router = sm.router();
-        // combile this router to global big router
-        // create a new closure, containing 
-        //      1. execute sm.before();
-        //      2. execute a_router map pair value part function;
-        //      3. execute sm.after();
-        // assign this new closure to the router map pair url part
-        
-        
-        
-    }
-    
-    
-}
-
