@@ -22,14 +22,14 @@ pub struct Request {
     // combined params of queries and body_params
     full_params: Option<HashMap<String, String>>,
     
-}
+} 
 
 impl Request {
     pub fn new(raw_request: HyperRequest) -> Request {
         // here, we should fill those extra fields from raw_request
         Request {
             raw_request: raw_request,
-            path: "/".to_owned(),
+            path: "".to_owned(),
             query_string: None,
             raw_body: None,
             queries: None,
