@@ -5,32 +5,41 @@ use std::io::{self, Read, Write};
 use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
 use hyper::header::ContentLength;
 use hyper::net::HttpStream;
-use hyper::server::{Server, Handler, Request, Response};
+use hyper::server::Server;
+use hyper::server::Handler as HyperHandler;
+use hyper::server::Request as HyperRequest;
+use hyper::server::Response as HyperResponse;
 
 
 
+mod request;
+use request::Request;
 mod response;
 use response::Response;
 
 
 
-pub enum Route {
-    NotFound,
-    Got,
+pub enum Error {
+    BeforeError,
+    HandlerError,
+    AfterError
 }
+
+pub type Result<T> = ::std::result::Result<T, Error>; 
+
+
+
 
 // all handler function in each module should fit this Handler trait
 trait SHandler {
-    fn handle(&self, req: &mut Request) -> Result<Response, SError> {
-        
-    }
+    fn handle(&self, req: &mut Request) -> Result<Response>;
 }
 
 
 trait SModule {
-    fn before(&mut Request) -> Result<(), SError>;
+    fn before(&mut Request) -> Result<()>;
     
-    fn after(&Request, &mut Response) -> Result<(), SError>;
+    fn after(&Request, &mut Response) -> Result<()>;
     
     // here add routers ....
     fn router() -> Router {
@@ -60,7 +69,7 @@ pub struct SApp<T: SModule> {
     pub res_str: String
 }
 
-impl SApp {
+impl<T> SApp<T: SModule> {
     pub fn new() -> SApp {
         SApp {
             route: Route::NotFound,
@@ -78,7 +87,7 @@ impl SApp {
     
     // add methods of this smodule
     // prefix:  such as '/user'
-    pub fn add_smodule<T: SModule>(&mut self, prefix: &str, sm: T) -> &mut self {
+    pub fn add_smodule(&mut self, prefix: &str, sm: T) -> &mut self {
         
         // get the sm router
         let a_router = sm.router();
@@ -97,16 +106,27 @@ impl SApp {
 }
 
 
-static INDEX: &'static [u8] = b"Welcome to swift-rs.";
-
-
-impl Handler<HttpStream> for SApp {
-    fn on_request(&mut self, req: Request) -> Next {
+impl HyperHandler<HttpStream> for SApp {
+    fn on_request(&mut self, req: HyperRequest) -> Next {
         match *req.uri() {
-            RequestUri::AbsolutePath(ref path) => match (req.method(), &path[..]) {
-                (&Get, "/") | (&Get, "/echo") => {
+            RequestUri::AbsolutePath(ref path) => match req.method() {
+                &Get => {
                     info!("GET Got");
                     self.route = Route::Got;
+                    
+                    // make swiftrs request from hyper request
+                    let mut sreq = Request::new(req, &path[..]);
+                    
+                    // find target handler in router collection
+                    
+                    // if find  
+                    // move this sreq to handler, executeit, return swiftrs Response 
+                    // else 
+                    // return NotFound
+                    
+                    // self.response = Some(response);
+                    
+                    // if request method is Get, no need to read req body, ready to response
                     Next::write()
                 }
                 
@@ -169,56 +189,76 @@ impl Handler<HttpStream> for SApp {
         Next::write()
     }
 
-    fn on_response(&mut self, res: &mut Response) -> Next {
-        match self.route {
-            Route::NotFound => {
-                res.set_status(StatusCode::NotFound);
-                Next::end()
+    fn on_response(&mut self, res: &mut HyperResponse) -> Next {
+        match self.response {
+            Some(response) => {
+                // here, set hyper response status code, and headers
+                
+            },
+            None => {
+                // Inner Error
+                // end
             }
-            Route::Got => {
-                let res_str = self.hello();
-                self.res_str = res_str;
-                res.headers_mut().set(ContentLength(self.res_str.len() as u64));
-                Next::write()
-            }
-            // Route::Echo(body) => {
-            //     if let Body::Len(len) = body {
-            //         res.headers_mut().set(ContentLength(len));
-            //     }
-            //     Next::read_and_write()
-            // }
         }
+        
+        // match self.route {
+        //     Route::NotFound => {
+        //         res.set_status(StatusCode::NotFound);
+        //         Next::end()
+        //     }
+        //     Route::Got => {
+        //         let res_str = self.hello();
+        //         self.res_str = res_str;
+        //         res.headers_mut().set(ContentLength(self.res_str.len() as u64));
+        //         Next::write()
+        //     }
+        //     // Route::Echo(body) => {
+        //     //     if let Body::Len(len) = body {
+        //     //         res.headers_mut().set(ContentLength(len));
+        //     //     }
+        //     //     Next::read_and_write()
+        //     // }
+        // }
     }
 
     fn on_response_writable(&mut self, transport: &mut Encoder<HttpStream>) -> Next {
-        match self.route {
-            Route::Got => {
-                transport.write(self.res_str.as_bytes()).unwrap();
-                Next::end()
+        match self.response {
+            Some(response) => {
+                // write response.body.unwrap() to transport
+            },
+            None => {
+                // end
             }
-            // Route::Echo(..) => {
-            //     if self.write_pos < self.read_pos {
-            //         match transport.write(&self.buf[self.write_pos..self.read_pos]) {
-            //             Ok(0) => panic!("write ZERO"),
-            //             Ok(n) => {
-            //                 self.write_pos += n;
-            //                 Next::write()
-            //             }
-            //             Err(e) => match e.kind() {
-            //                 io::ErrorKind::WouldBlock => Next::write(),
-            //                 _ => {
-            //                     println!("write error {:?}", e);
-            //                     Next::end()
-            //                 }
-            //             }
-            //         }
-            //     } else if !self.eof {
-            //         Next::read()
-            //     } else {
-            //         Next::end()
-            //     }
-            // }
-            _ => unreachable!()
         }
+        
+        // match self.route {
+        //     Route::Got => {
+        //         transport.write(self.res_str.as_bytes()).unwrap();
+        //         Next::end()
+        //     }
+        //     // Route::Echo(..) => {
+        //     //     if self.write_pos < self.read_pos {
+        //     //         match transport.write(&self.buf[self.write_pos..self.read_pos]) {
+        //     //             Ok(0) => panic!("write ZERO"),
+        //     //             Ok(n) => {
+        //     //                 self.write_pos += n;
+        //     //                 Next::write()
+        //     //             }
+        //     //             Err(e) => match e.kind() {
+        //     //                 io::ErrorKind::WouldBlock => Next::write(),
+        //     //                 _ => {
+        //     //                     println!("write error {:?}", e);
+        //     //                     Next::end()
+        //     //                 }
+        //     //             }
+        //     //         }
+        //     //     } else if !self.eof {
+        //     //         Next::read()
+        //     //     } else {
+        //     //         Next::end()
+        //     //     }
+        //     // }
+        //     _ => unreachable!()
+        // }
     }
 }
