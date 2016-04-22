@@ -1,20 +1,24 @@
-
+use sapp::Result;
 use router::Router;
+use request::Request;
+use response::Response;
 
 pub struct Biz;
 
 impl Biz {
     // those handlers in module Biz
-    fn xxx(req: Request) -> Result<Response, SError> {
+    fn index(req: Request) -> Result<Response> {
         
         let mut response = Response::new();
+        response.write_body("hello, boy!".to_string());
         
         Ok(response)
     }
     
-    fn yyy(req: Request) -> Result<Response, SError> {
+    fn test(req: Request) -> Result<Response> {
         
         let mut response = Response::new();
+        response.write_body("hello, boy!".to_string());
         
         Ok(response)
     }
@@ -24,23 +28,23 @@ impl Biz {
 // set before, after middleware, and add routers
 impl SModule for Biz {
     
-    fn before(&self, &mut Request) -> Result<(), SError> {
+    fn before(&self, &mut Request) -> Result<()> {
         
+        Ok(())
     }
     
-    fn after(&self, &mut Response) -> Result<(), SError> {
+    fn after(&self, &mut Response) -> Result<()> {
         
+        Ok(())
     }
     
     // here add routers ....
-    fn router(&self) -> Router {
+    fn router(&self, router: &mut Router, prefix: &str) {
         // need to use Router struct here
-        let router = Router::new();
         
-        router.get("/xxx/bbb/eee", Biz::xxx);
-        router.get("/yyy", Biz::yyy);
+        router.get("/", Biz::index);
+        router.get("/test", Biz::test);
         
-        router
     }
     
     

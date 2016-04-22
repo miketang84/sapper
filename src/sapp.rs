@@ -63,7 +63,7 @@ pub struct SApp<T: SModule> {
     // module vector, no need
     // pub modules: Vec<T>,
     // routers, keep one big router table
-    pub routers: RouterTable,
+    pub router: Router,
     
     // tmp for test
     pub res_str: String
@@ -74,7 +74,7 @@ impl<T> SApp<T: SModule> {
         SApp {
             route: Route::NotFound,
             response: None,
-            routers: Default(),
+            router: Router::new(),
             // for test
             res_str: "".to_string()
         }
@@ -87,10 +87,10 @@ impl<T> SApp<T: SModule> {
     
     // add methods of this smodule
     // prefix:  such as '/user'
-    pub fn add_smodule(&mut self, prefix: &str, sm: T) -> &mut self {
+    pub fn add_smodule(&mut self, prefix: &str,  sm: T) -> &mut self {
         
         // get the sm router
-        let a_router = sm.router();
+        sm.router(&mut self.router, prefix);
         // combile this router to global big router
         // create a new closure, containing 
         //      1. execute sm.before();
@@ -98,7 +98,7 @@ impl<T> SApp<T: SModule> {
         //      3. execute sm.after();
         // assign this new closure to the router map pair  prefix + url part 
         
-        
+        self
         
     }
     
@@ -116,6 +116,21 @@ impl HyperHandler<HttpStream> for SApp {
                     
                     // make swiftrs request from hyper request
                     let mut sreq = Request::new(req, &path[..]);
+                    
+                    // Need more work
+                    self.router.handle_method(req, &path).unwrap_or_else(||
+                        match req.method {
+                            method::Options => Ok(self.handle_options(&path)),
+                            // For HEAD, fall back to GET. Hyper ensures no response body is written.
+                            method::Head => {
+                                req.method = method::Get;
+                                self.handle_method(req, &path).unwrap_or(
+                                    Err(IronError::new(NoRoute, status::NotFound))
+                                )
+                            }
+                            _ => Err(IronError::new(NoRoute, status::NotFound))
+                        }
+                    );
                     
                     // find target handler in router collection
                     
