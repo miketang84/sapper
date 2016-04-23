@@ -1,5 +1,5 @@
 [package]
-name = "swiftrs"
+name = "sapp-rs"
 version = "0.1.0"
 authors = ["Mike Tang <miketang84@outlook.com>"]
 

@@ -29,12 +29,12 @@ impl Biz {
 // set before, after middleware, and add routers
 impl SModule for Biz {
     
-    fn before(&self, &mut Request) -> Result<()> {
+    fn before(&self, req: &mut Request) -> Result<()> {
         
         Ok(())
     }
     
-    fn after(&self, &Request, &mut Response) -> Result<()> {
+    fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
         
         Ok(())
     }

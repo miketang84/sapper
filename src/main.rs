@@ -6,14 +6,20 @@ extern crate hyper;
 extern crate env_logger;
 #[macro_use]
 extern crate log;
+extern crate route_recognizer as recognizer;
+extern crate typemap;
 
-mod biz;
-use biz::Biz;
+use hyper::server::Server;
+
 use sapp::SApp;
 use sapp::SAppWrapper;
 use request::Request;
 use response::Response;
 use sapp::Result;
+
+
+
+
 
 // must impl it
 // total entry and exitice
@@ -28,6 +34,11 @@ impl SAppWrapper for SApp {
         Ok(())
     }
 }
+
+
+
+mod biz;
+use biz::Biz;
 
 
 fn main() {

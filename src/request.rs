@@ -32,33 +32,25 @@ impl Request {
     pub fn new(raw_request: HyperRequest, pathstr: &str) -> Request {
         // seperate path and query_string
         let pathvec: Vec<&str> = path.split('?').collect();
-        // if only path part
-        if pathvec.len() = 1 {
-            // here, we should fill those extra fields from raw_request
-            Request {
-                raw_request: raw_request,
-                path: pathvec[0].to_owned(),
-                query_string: None,
-                raw_body: None,
-                queries: None,
-                body_params: None,
-                full_params: None,
-                ext: TypeMap::new()
-            }
+        let path = pathvec[0].to_owned();
+        let mut query_string = None;
+        
+        // if has query_string
+        if pathvec.len() > 1 {
+            query_string = Some(pathvec[1].to_owned());
         }
-        else {
-            // if has query_string
-            Request {
-                raw_request: raw_request,
-                path: pathvec[0].to_owned(),
-                query_string: Some(pathvec[1].to_owned()),
-                raw_body: None,
-                queries: None,
-                body_params: None,
-                full_params: None,
-                ext: TypeMap::new()
-            }
+        
+        Request {
+            raw_request: raw_request,
+            path: path,
+            query_string: query_string,
+            raw_body: None,
+            queries: None,
+            body_params: None,
+            full_params: None,
+            ext: TypeMap::new()
         }
+
     }
     
     pub fn method(&self) -> &Method {

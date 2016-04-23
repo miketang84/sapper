@@ -5,11 +5,13 @@ use std::io::{self, Read, Write};
 use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
 use hyper::header::ContentLength;
 use hyper::net::HttpStream;
-use hyper::server::Server;
+
 use hyper::server::Handler as HyperHandler;
 use hyper::server::Request as HyperRequest;
 use hyper::server::Response as HyperResponse;
 
+use std::result::Result as StdResult;
+use std::error::Error as StdError;
 
 
 mod request;
@@ -23,14 +25,11 @@ use srouter::SRouter;
 pub enum Error {
     BeforeError,
     HandlerError,
-    AfterError
+    AfterError,
+    RouterConfigError
 }
 
 pub type Result<T> = ::std::result::Result<T, Error>; 
-
-
-
-
 
 
 pub trait SModule {
@@ -39,7 +38,7 @@ pub trait SModule {
     fn after(&self, &Request, &mut Response) -> Result<()>;
     
     // here add routers ....
-    fn router(&self, router: &mut SRouter) -> Router;
+    fn router(&self, &mut SRouter) -> Result<()>;
     
 }
 
@@ -51,10 +50,12 @@ pub trait SAppWrapper {
 }
 
 // later will add more fields
+#[derive(Debug, Clone)]
 pub struct SApp {
-    // routers, keep one big router table
+    // router, keep the original handler function
     pub router: SRouter,
-    // wrapped router, add global and module router wrapper
+    // wrapped router, keep the wrapped handler function
+    // for actually use to recognize
     pub router_wrap: Router,
     // response deliver
     pub response: Option<Response>,
@@ -63,12 +64,9 @@ pub struct SApp {
 impl<T> SApp<T: SModule> {
     pub fn new() -> SApp {
         SApp {
-            route: Route::NotFound,
-            response: None,
             router: SRouter::new(),
             router_wrap: Router::new(),
-            // for test
-            res_str: "".to_string()
+            response: None,
         }
     }
     
@@ -96,12 +94,8 @@ impl<T> SApp<T: SModule> {
             })
         }
         
-        
         self
-        
     }
-    
-    
 }
 
 
@@ -112,7 +106,7 @@ impl HyperHandler<HttpStream> for SApp {
                 
                 let path = &path[..];
                 // make swiftrs request from hyper request
-                let mut sreq = Request::new(req, &path[..]);
+                let mut sreq = Request::new(req, path);
                 
                 // XXX: Need more work
                 self.response = self.router_wrap.handle_method(sreq, &path).unwrap().ok();
