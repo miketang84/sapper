@@ -1,3 +1,4 @@
+use std::result::Result as StdResult;
 use sapp::Result;
 use sapp::SModule;
 use request::Request;
@@ -8,7 +9,7 @@ pub struct Biz;
 
 impl Biz {
     // those handlers in module Biz
-    fn index(req: Request) -> Result<Response> {
+    fn index(req: &mut Request) -> Result<Response> {
         
         let mut response = Response::new();
         response.write_body("hello, boy!".to_string());
@@ -16,7 +17,7 @@ impl Biz {
         Ok(response)
     }
     
-    fn test(req: Request) -> Result<Response> {
+    fn test(req: &mut Request) -> Result<Response> {
         
         let mut response = Response::new();
         response.write_body("hello, boy!".to_string());
@@ -40,13 +41,15 @@ impl SModule for Biz {
     }
     
     // here add routers ....
-    fn router(&self, router: &mut SRouter) {
+    fn router(&self, router: &mut SRouter) -> Result<()> {
         // need to use Router struct here
         // XXX: here could not write as this, should record first, not parse it now
         
         
         router.get("/", Biz::index);
         router.get("/test", Biz::test);
+        
+        Ok(())
         
     }
     

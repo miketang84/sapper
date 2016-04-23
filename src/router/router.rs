@@ -10,6 +10,7 @@ use sapp::Error;
 use srouter::SRouter;
 use hyper::{status, header};
 use hyper::method::Method;
+use typemap::Key;
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
@@ -59,50 +60,50 @@ impl Router {
     /// authorized for this route before handling it.
     pub fn route<H, S>(&mut self, method: Method,
                        glob: S, handler: H) -> &mut Router
-    where H: SHandler, S: AsRef<str> {
+    where H: SHandler + 'static, S: AsRef<str> {
         self.routers.entry(method).or_insert(Recognizer::new())
                     .add(glob.as_ref(), Box::new(handler));
         self
     }
 
     /// Like route, but specialized to the `Get` method.
-    pub fn get<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    pub fn get<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
         self.route(Method::Get, glob, handler)
     }
 
     /// Like route, but specialized to the `Post` method.
-    pub fn post<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    pub fn post<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
         self.route(Method::Post, glob, handler)
     }
 
     /// Like route, but specialized to the `Put` method.
-    pub fn put<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    pub fn put<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
         self.route(Method::Put, glob, handler)
     }
 
     /// Like route, but specialized to the `Delete` method.
-    pub fn delete<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    pub fn delete<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
         self.route(Method::Delete, glob, handler)
     }
 
     /// Like route, but specialized to the `Head` method.
-    pub fn head<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    pub fn head<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
         self.route(Method::Head, glob, handler)
     }
 
     /// Like route, but specialized to the `Patch` method.
-    pub fn patch<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    pub fn patch<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
         self.route(Method::Patch, glob, handler)
     }
 
     /// Like route, but specialized to the `Options` method.
-    pub fn options<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    pub fn options<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
         self.route(Method::Options, glob, handler)
     }
 
     /// Route will match any method, including gibberish.
     /// In case of ambiguity, handlers specific to methods will be preferred.
-    pub fn any<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    pub fn any<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
         self.wildcard.add(glob.as_ref(), Box::new(handler));
         self
     }
@@ -159,9 +160,9 @@ impl Router {
     //     )
     // }
 
-    fn handle_method(&self, req: &mut Request, path: &str) -> Option<Result<Response>> {
-        if let Some(matched) = self.recognize(&req.method, path) {
-            req.ext.insert::<SRouter>(matched.params);
+    pub fn handle_method(&self, req: &mut Request, path: &str) -> Option<Result<Response>> {
+        if let Some(matched) = self.recognize(&req.method(), path) {
+            req.get_ext().insert::<SRouter>(matched.params);
             Some(matched.handler.handle(req))
         } else { 
             panic!("not matched!");
@@ -170,7 +171,7 @@ impl Router {
     }
 }
 
-// impl Key for Router { type Value = Params; }
+impl Key for SRouter { type Value = Params; }
 
 // impl SHandler for Router {
 //     fn handle(&self, req: &mut Request) -> IronResult<Response> {

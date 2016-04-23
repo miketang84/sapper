@@ -31,7 +31,7 @@ use sapp::SModule;
 
 // must impl it
 // total entry and exitice
-impl<T: SModule> SAppWrapper for SApp<T> {
+impl<T: SModule + Send + 'static> SAppWrapper for SApp<T> {
     fn before(req: &mut Request) -> Result<()> {
         
         Ok(())

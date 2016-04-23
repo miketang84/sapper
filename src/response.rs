@@ -15,7 +15,7 @@ pub struct Response {
 impl Response {
     pub fn new() -> Response {
         // create this object
-        let res: Response = Default::new();
+        let res: Response = Default::default();
         
         res
     }
@@ -33,7 +33,7 @@ impl Response {
         &self.headers
     }
     
-    pub fn headers_mut(&self) -> &mut Headers {
+    pub fn headers_mut(&mut self) -> &mut Headers {
         &mut self.headers
     }
     

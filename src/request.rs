@@ -6,7 +6,6 @@ use hyper::version::HttpVersion;
 use std::collections::HashMap;
 use typemap::TypeMap;
 
-#[derive(Default)]
 pub struct Request {
     raw_request: HyperRequest,
     
@@ -89,6 +88,8 @@ impl Request {
         &self.full_params
     }
     
-    
+    pub fn get_ext(&mut self) -> &mut TypeMap {
+        &mut self.ext
+    }
 }
 

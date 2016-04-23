@@ -49,8 +49,9 @@ pub trait SAppWrapper {
 }
 
 // later will add more fields
-#[derive(Debug, Clone)]
-pub struct SApp<T: SModule> {
+pub struct SApp<T: SModule + Send + 'static> {
+    pub modules: Vec<T>,
+    
     // router, keep the original handler function
     pub router: SRouter,
     // wrapped router, keep the wrapped handler function
@@ -60,9 +61,10 @@ pub struct SApp<T: SModule> {
     pub response: Option<Response>,
 }
 
-impl<T: SModule> SApp<T> {
+impl<T: SModule + Send + 'static> SApp<T> {
     pub fn new() -> SApp<T> {
         SApp {
+            modules: Vec::new(),
             router: SRouter::new(),
             router_wrap: Router::new(),
             response: None,
@@ -86,19 +88,21 @@ impl<T: SModule> SApp<T> {
         // fill the self.router_wrap finally
         // assign this new closure to the router_wrap router map pair  prefix + url part 
         
-        for (method, handler_vec) in &self.router {
+        for (method, handler_vec) in self.router.get_inner_router() {
             // add to wrapped router
-            handler_vec.map(|(&glob, &handler)|{
-                self.router_wrap.route(*method, *glob, *handler);
-            })
+            for &(ref glob, ref handler) in handler_vec.iter() {
+                self.router_wrap.route(*method, *glob, handler);
+            }
         }
+        
+        self.modules.push(sm);
         
         self
     }
 }
 
 
-impl<T: SModule> HyperHandler<HttpStream> for SApp<T> {
+impl<T: SModule + Send + 'static> HyperHandler<HttpStream> for SApp<T> {
     fn on_request(&mut self, req: HyperRequest) -> Next {
         match *req.uri() {
             RequestUri::AbsolutePath(ref path) =>  {
@@ -108,7 +112,7 @@ impl<T: SModule> HyperHandler<HttpStream> for SApp<T> {
                 let mut sreq = Request::new(req, path);
                 
                 // XXX: Need more work
-                self.response = self.router_wrap.handle_method(sreq, &path).unwrap().ok();
+                self.response = self.router_wrap.handle_method(&mut sreq, &path).unwrap().ok();
                 // self.router_wrap.handle_method(sreq, &path).unwrap_or_else(||
                     // match req.method {
                     //     method::Options => Ok(self.handle_options(&path)),
@@ -155,7 +159,7 @@ impl<T: SModule> HyperHandler<HttpStream> for SApp<T> {
         match self.response {
             Some(response) => {
                 // write response.body.unwrap() to transport
-                transport.write("it do.");
+                transport.write("it do.".as_bytes());
                 Next::end()
             },
             None => {
