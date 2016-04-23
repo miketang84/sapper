@@ -8,7 +8,8 @@ use shandler::SHandler;
 use sapp::Result;
 use sapp::Error;
 use srouter::SRouter;
-use hyper::{status, method, header};
+use hyper::{status, header};
+use hyper::method::Method;
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
@@ -17,7 +18,7 @@ use recognizer::{Match, Params};
 /// for the Iron framework.
 pub struct Router {
     // The routers, specialized by method.
-    routers: HashMap<method::Method, Recognizer<Box<SHandler>>>,
+    routers: HashMap<Method, Recognizer<Box<SHandler>>>,
     // Routes that accept any method.
     wildcard: Recognizer<Box<SHandler>>
 }
@@ -56,7 +57,7 @@ impl Router {
     /// a `Chain`, a `SHandler`, which contains an authorization middleware and
     /// a controller function, so that you can confirm that the request is
     /// authorized for this route before handling it.
-    pub fn route<H, S>(&mut self, method: method::Method,
+    pub fn route<H, S>(&mut self, method: Method,
                        glob: S, handler: H) -> &mut Router
     where H: SHandler, S: AsRef<str> {
         self.routers.entry(method).or_insert(Recognizer::new())
@@ -66,37 +67,37 @@ impl Router {
 
     /// Like route, but specialized to the `Get` method.
     pub fn get<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(method::Get, glob, handler)
+        self.route(Method::Get, glob, handler)
     }
 
     /// Like route, but specialized to the `Post` method.
     pub fn post<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(method::Post, glob, handler)
+        self.route(Method::Post, glob, handler)
     }
 
     /// Like route, but specialized to the `Put` method.
     pub fn put<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(method::Put, glob, handler)
+        self.route(Method::Put, glob, handler)
     }
 
     /// Like route, but specialized to the `Delete` method.
     pub fn delete<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(method::Delete, glob, handler)
+        self.route(Method::Delete, glob, handler)
     }
 
     /// Like route, but specialized to the `Head` method.
     pub fn head<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(method::Head, glob, handler)
+        self.route(Method::Head, glob, handler)
     }
 
     /// Like route, but specialized to the `Patch` method.
     pub fn patch<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(method::Patch, glob, handler)
+        self.route(Method::Patch, glob, handler)
     }
 
     /// Like route, but specialized to the `Options` method.
     pub fn options<H: SHandler, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(method::Options, glob, handler)
+        self.route(Method::Options, glob, handler)
     }
 
     /// Route will match any method, including gibberish.
@@ -106,7 +107,7 @@ impl Router {
         self
     }
 
-    fn recognize(&self, method: &method::Method, path: &str)
+    fn recognize(&self, method: &Method, path: &str)
                      -> Option<Match<&Box<SHandler>>> {
         self.routers.get(method).and_then(|router| router.recognize(path).ok())
             .or(self.wildcard.recognize(path).ok())
@@ -191,32 +192,32 @@ impl Router {
 //     }
 // }
 
-/// The error thrown by router if there is no matching route,
-/// it is always accompanied by a NotFound response.
-#[derive(Debug)]
-pub struct NoRoute;
+// /// The error thrown by router if there is no matching route,
+// /// it is always accompanied by a NotFound response.
+// #[derive(Debug)]
+// pub struct NoRoute;
 
-impl fmt::Display for NoRoute {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str("No matching route found.")
-    }
-}
+// impl fmt::Display for NoRoute {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         f.write_str("No matching route found.")
+//     }
+// }
 
-impl Error for NoRoute {
-    fn description(&self) -> &str { "No Route" }
-}
+// impl Error for NoRoute {
+//     fn description(&self) -> &str { "No Route" }
+// }
 
-/// The error thrown by router if a request was redirected
-/// by adding or removing a trailing slash.
-#[derive(Debug)]
-pub struct TrailingSlash;
+// /// The error thrown by router if a request was redirected
+// /// by adding or removing a trailing slash.
+// #[derive(Debug)]
+// pub struct TrailingSlash;
 
-impl fmt::Display for TrailingSlash {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str("The request had a trailing slash.")
-    }
-}
+// impl fmt::Display for TrailingSlash {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         f.write_str("The request had a trailing slash.")
+//     }
+// }
 
-impl Error for TrailingSlash {
-    fn description(&self) -> &str { "Trailing Slash" }
-}
+// impl Error for TrailingSlash {
+//     fn description(&self) -> &str { "Trailing Slash" }
+// }

@@ -1,20 +1,24 @@
 
 use std::collections::HashMap;
-use hyper::method;
+use hyper::method::Method;
 
 use shandler::SHandler;
 
 
 
-pub type SRouter = HashMap<method::Method, Vec<(&str, Box<SHandler>)>>;
+pub struct SRouter {
+    router: HashMap<Method, Vec<(&'static str, Box<SHandler>)>>
+}
 
 
 impl SRouter {
     pub fn new() -> SRouter {
-        HashMap::new()
+        SRouter {
+            router: HashMap::new()
+        }
     }
 
-    pub fn route<H, S>(&mut self, method: method::Method,
+    pub fn route<H, S>(&mut self, method: Method,
                        glob: &str, handler: H) -> &mut SRouter
     where H: SHandler {
         self.router.entry(method).or_insert(Vec::new())
@@ -24,37 +28,37 @@ impl SRouter {
 
     /// Like route, but specialized to the `Get` method.
     pub fn get<H: SHandler>(&mut self, glob: &str, handler: H) -> &mut SRouter {
-        self.route(method::Get, glob, handler)
+        self.route(Method::Get, glob, handler)
     }
 
     /// Like route, but specialized to the `Post` method.
     pub fn post<H: SHandler>(&mut self, glob: &str, handler: H) -> &mut SRouter {
-        self.route(method::Post, glob, handler)
+        self.route(Method::Post, glob, handler)
     }
 
     /// Like route, but specialized to the `Put` method.
     pub fn put<H: SHandler>(&mut self, glob: &str, handler: H) -> &mut SRouter {
-        self.route(method::Put, glob, handler)
+        self.route(Method::Put, glob, handler)
     }
 
     /// Like route, but specialized to the `Delete` method.
     pub fn delete<H: SHandler>(&mut self, glob: &str, handler: H) -> &mut SRouter {
-        self.route(method::Delete, glob, handler)
+        self.route(Method::Delete, glob, handler)
     }
 
     /// Like route, but specialized to the `Head` method.
     pub fn head<H: SHandler>(&mut self, glob: &str, handler: H) -> &mut SRouter {
-        self.route(method::Head, glob, handler)
+        self.route(Method::Head, glob, handler)
     }
 
     /// Like route, but specialized to the `Patch` method.
     pub fn patch<H: SHandler>(&mut self, glob: &str, handler: H) -> &mut SRouter {
-        self.route(method::Patch, glob, handler)
+        self.route(Method::Patch, glob, handler)
     }
 
     /// Like route, but specialized to the `Options` method.
     pub fn options<H: SHandler>(&mut self, glob: &str, handler: H) -> &mut SRouter {
-        self.route(method::Options, glob, handler)
+        self.route(Method::Options, glob, handler)
     }
 }
 

@@ -14,12 +14,11 @@ use std::result::Result as StdResult;
 use std::error::Error as StdError;
 
 
-mod request;
-use request::Request;
-mod response;
-use response::Response;
-use router::Router;
-use srouter::SRouter;
+
+pub use request::Request;
+pub use response::Response;
+pub use router::Router;
+pub use srouter::SRouter;
 
 
 pub enum Error {
@@ -51,7 +50,7 @@ pub trait SAppWrapper {
 
 // later will add more fields
 #[derive(Debug, Clone)]
-pub struct SApp {
+pub struct SApp<T: SModule> {
     // router, keep the original handler function
     pub router: SRouter,
     // wrapped router, keep the wrapped handler function
@@ -61,8 +60,8 @@ pub struct SApp {
     pub response: Option<Response>,
 }
 
-impl<T> SApp<T: SModule> {
-    pub fn new() -> SApp {
+impl<T: SModule> SApp<T> {
+    pub fn new() -> SApp<T> {
         SApp {
             router: SRouter::new(),
             router_wrap: Router::new(),
@@ -72,7 +71,7 @@ impl<T> SApp<T: SModule> {
     
     // add methods of this smodule
     // prefix:  such as '/user'
-    pub fn add_smodule(&mut self, sm: T) -> &mut self {
+    pub fn add_smodule(&mut self, sm: T) -> &mut Self {
         
         // get the sm router
         // pass self.router in
@@ -87,7 +86,7 @@ impl<T> SApp<T: SModule> {
         // fill the self.router_wrap finally
         // assign this new closure to the router_wrap router map pair  prefix + url part 
         
-        for method, handler_vec in &self.router {
+        for (method, handler_vec) in &self.router {
             // add to wrapped router
             handler_vec.map(|(&glob, &handler)|{
                 self.router_wrap.route(*method, *glob, *handler);
@@ -99,7 +98,7 @@ impl<T> SApp<T: SModule> {
 }
 
 
-impl HyperHandler<HttpStream> for SApp {
+impl<T: SModule> HyperHandler<HttpStream> for SApp<T> {
     fn on_request(&mut self, req: HyperRequest) -> Next {
         match *req.uri() {
             RequestUri::AbsolutePath(ref path) =>  {
@@ -122,7 +121,7 @@ impl HyperHandler<HttpStream> for SApp {
                     //     }
                     //     _ => Err(IronError::new(NoRoute, status::NotFound))
                     // }
-                );
+                // );
                 
                 Next::write()
             },
@@ -156,7 +155,7 @@ impl HyperHandler<HttpStream> for SApp {
         match self.response {
             Some(response) => {
                 // write response.body.unwrap() to transport
-                transport.write("it do.")
+                transport.write("it do.");
                 Next::end()
             },
             None => {

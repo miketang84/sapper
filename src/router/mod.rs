@@ -3,9 +3,12 @@
 
 //! `Router` provides fast and flexible routing for swiftrs.
 // extern crate route_recognizer as recognizer;
+mod router;
 
-pub use router::{Router, NoRoute};
+
+pub use router::router::Router;
+// pub use router::router::NoRoute;
 pub use recognizer::Params;
 
-mod router;
+
 // mod macros;

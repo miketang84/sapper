@@ -1,6 +1,8 @@
+use std::default::Default;
 
 use hyper::status::StatusCode;
 use hyper::header::Headers;
+
 
 #[derive(Default)]
 pub struct Response {
@@ -13,7 +15,7 @@ pub struct Response {
 impl Response {
     pub fn new() -> Response {
         // create this object
-        let res: Response = Default();
+        let res: Response = Default::new();
         
         res
     }

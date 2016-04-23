@@ -11,25 +11,33 @@ extern crate typemap;
 
 use hyper::server::Server;
 
+mod request;
+mod response;
+mod shandler;
+mod router;
+mod srouter;
+mod sapp;
+
+
 use sapp::SApp;
 use sapp::SAppWrapper;
-use request::Request;
-use response::Response;
+use sapp::Request;
+use sapp::Response;
 use sapp::Result;
-
+use sapp::SModule;
 
 
 
 
 // must impl it
 // total entry and exitice
-impl SAppWrapper for SApp {
-    fn before(&mut Request) -> Result<()> {
+impl<T: SModule> SAppWrapper for SApp<T> {
+    fn before(req: &mut Request) -> Result<()> {
         
         Ok(())
     }
     
-    fn after(&Request, &mut Response) -> Result<()> {
+    fn after(req: &Request, res: &mut Response) -> Result<()> {
         
         Ok(())
     }

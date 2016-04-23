@@ -31,7 +31,7 @@ pub struct Request {
 impl Request {
     pub fn new(raw_request: HyperRequest, pathstr: &str) -> Request {
         // seperate path and query_string
-        let pathvec: Vec<&str> = path.split('?').collect();
+        let pathvec: Vec<&str> = pathstr.split('?').collect();
         let path = pathvec[0].to_owned();
         let mut query_string = None;
         
