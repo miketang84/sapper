@@ -17,6 +17,7 @@ use request::Request;
 mod response;
 use response::Response;
 use router::Router;
+use srouter::SRouter;
 
 
 pub enum Error {
@@ -30,10 +31,6 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 
 
 
-// all handler function in each module should fit this Handler trait
-pub trait SHandler {
-    fn handle(&self, req: &mut Request) -> Result<Response>;
-}
 
 
 pub trait SModule {
@@ -42,7 +39,7 @@ pub trait SModule {
     fn after(&self, &Request, &mut Response) -> Result<()>;
     
     // here add routers ....
-    fn router(&self, router: &mut Router, prefix: &str) -> Router;
+    fn router(&self, router: &mut SRouter) -> Router;
     
 }
 
@@ -54,19 +51,13 @@ pub trait SAppWrapper {
 }
 
 // later will add more fields
-pub struct SApp<T: SModule> {
-    // got it or not
-    pub route: Route,
-    // response deliver
-    pub response: Option<Response>,
-    // module vector, no need
-    // pub modules: Vec<T>,
+pub struct SApp {
     // routers, keep one big router table
     pub router: SRouter,
     // wrapped router, add global and module router wrapper
     pub router_wrap: Router,
-    // tmp for test
-    pub res_str: String
+    // response deliver
+    pub response: Option<Response>,
 }
 
 impl<T> SApp<T: SModule> {
@@ -74,24 +65,20 @@ impl<T> SApp<T: SModule> {
         SApp {
             route: Route::NotFound,
             response: None,
-            router: Router::new(),
+            router: SRouter::new(),
+            router_wrap: Router::new(),
             // for test
             res_str: "".to_string()
         }
     }
     
-    pub fn hello (&mut self) -> String {
-        let res_str = "hello swift rs.";
-        res_str.to_string()
-    }
-    
     // add methods of this smodule
     // prefix:  such as '/user'
-    pub fn add_smodule(&mut self, prefix: &str,  sm: T) -> &mut self {
+    pub fn add_smodule(&mut self, sm: T) -> &mut self {
         
         // get the sm router
         // pass self.router in
-        sm.router(&mut self.router, prefix);
+        sm.router(&mut self.router);
         // combile this router to global big router
         // create a new closure, containing 
         //      0. execute sapp.before();
@@ -101,6 +88,14 @@ impl<T> SApp<T: SModule> {
         //      4. execute sapp.after();
         // fill the self.router_wrap finally
         // assign this new closure to the router_wrap router map pair  prefix + url part 
+        
+        for method, handler_vec in &self.router {
+            // add to wrapped router
+            handler_vec.map(|(&glob, &handler)|{
+                self.router_wrap.route(*method, *glob, *handler);
+            })
+        }
+        
         
         self
         
@@ -113,97 +108,35 @@ impl<T> SApp<T: SModule> {
 impl HyperHandler<HttpStream> for SApp {
     fn on_request(&mut self, req: HyperRequest) -> Next {
         match *req.uri() {
-            RequestUri::AbsolutePath(ref path) => match req.method() {
-                &Get => {
-                    info!("GET Got");
-                    self.route = Route::Got;
-                    
-                    // make swiftrs request from hyper request
-                    let mut sreq = Request::new(req, &path[..]);
-                    
-                    // XXX: Need more work
-                    self.router.handle_method(req, &path).unwrap_or_else(||
-                        match req.method {
-                            method::Options => Ok(self.handle_options(&path)),
-                            // For HEAD, fall back to GET. Hyper ensures no response body is written.
-                            method::Head => {
-                                req.method = method::Get;
-                                self.handle_method(req, &path).unwrap_or(
-                                    Err(IronError::new(NoRoute, status::NotFound))
-                                )
-                            }
-                            _ => Err(IronError::new(NoRoute, status::NotFound))
-                        }
-                    );
-                    
-                    // find target handler in router collection
-                    
-                    // if find  
-                    // move this sreq to handler, executeit, return swiftrs Response 
-                    // else 
-                    // return NotFound
-                    
-                    // self.response = Some(response);
-                    
-                    // if request method is Get, no need to read req body, ready to response
-                    Next::write()
-                }
+            RequestUri::AbsolutePath(ref path) =>  {
                 
-                // (&Post, "/echo") => {
-                //     info!("POST Echo");
-                //     let mut is_more = true;
-                //     self.route = if let Some(len) = req.headers().get::<ContentLength>() {
-                //         is_more = **len > 0;
-                //         Route::Echo(Body::Len(**len))
-                //     } else {
-                //         Route::Echo(Body::Chunked)
-                //     };
-                //     if is_more {
-                //         Next::read_and_write()
-                //     } else {
-                //         Next::write()
-                //     }
-                // }
+                let path = &path[..];
+                // make swiftrs request from hyper request
+                let mut sreq = Request::new(req, &path[..]);
                 
-                _ => Next::write(),
+                // XXX: Need more work
+                self.response = self.router_wrap.handle_method(sreq, &path).unwrap().ok();
+                // self.router_wrap.handle_method(sreq, &path).unwrap_or_else(||
+                    // match req.method {
+                    //     method::Options => Ok(self.handle_options(&path)),
+                    //     // For HEAD, fall back to GET. Hyper ensures no response body is written.
+                    //     method::Head => {
+                    //         req.method = method::Get;
+                    //         self.handle_method(req, &path).unwrap_or(
+                    //             Err(IronError::new(NoRoute, status::NotFound))
+                    //         )
+                    //     }
+                    //     _ => Err(IronError::new(NoRoute, status::NotFound))
+                    // }
+                );
+                
+                Next::write()
             },
             _ => Next::write()
         }
     }
     fn on_request_readable(&mut self, transport: &mut Decoder<HttpStream>) -> Next {
-        // match self.route {
-        //     // Route::Echo(ref body) => {
-        //     //     if self.read_pos < self.buf.len() {
-        //     //         match transport.read(&mut self.buf[self.read_pos..]) {
-        //     //             Ok(0) => {
-        //     //                 debug!("Read 0, eof");
-        //     //                 self.eof = true;
-        //     //                 Next::write()
-        //     //             },
-        //     //             Ok(n) => {
-        //     //                 self.read_pos += n;
-        //     //                 match *body {
-        //     //                     Body::Len(max) if max <= self.read_pos as u64 => {
-        //     //                         self.eof = true;
-        //     //                         Next::write()
-        //     //                     },
-        //     //                     _ => Next::read_and_write()
-        //     //                 }
-        //     //             }
-        //     //             Err(e) => match e.kind() {
-        //     //                 io::ErrorKind::WouldBlock => Next::read_and_write(),
-        //     //                 _ => {
-        //     //                     println!("read error {:?}", e);
-        //     //                     Next::end()
-        //     //                 }
-        //     //             }
-        //     //         }
-        //     //     } else {
-        //     //         Next::write()
-        //     //     }
-        //     // }
-        //     _ => unreachable!()
-        // }
+        
         
         Next::write()
     }
@@ -212,72 +145,31 @@ impl HyperHandler<HttpStream> for SApp {
         match self.response {
             Some(response) => {
                 // here, set hyper response status code, and headers
-                
+                res.headers_mut().set(ContentLength("it do.".len() as u64));
+                Next::write()
             },
             None => {
                 // Inner Error
                 // end
+                Next::end()
             }
         }
         
-        // match self.route {
-        //     Route::NotFound => {
-        //         res.set_status(StatusCode::NotFound);
-        //         Next::end()
-        //     }
-        //     Route::Got => {
-        //         let res_str = self.hello();
-        //         self.res_str = res_str;
-        //         res.headers_mut().set(ContentLength(self.res_str.len() as u64));
-        //         Next::write()
-        //     }
-        //     // Route::Echo(body) => {
-        //     //     if let Body::Len(len) = body {
-        //     //         res.headers_mut().set(ContentLength(len));
-        //     //     }
-        //     //     Next::read_and_write()
-        //     // }
-        // }
+        
     }
 
     fn on_response_writable(&mut self, transport: &mut Encoder<HttpStream>) -> Next {
         match self.response {
             Some(response) => {
                 // write response.body.unwrap() to transport
+                transport.write("it do.")
+                Next::end()
             },
             None => {
                 // end
+                Next::end()
             }
         }
-        
-        // match self.route {
-        //     Route::Got => {
-        //         transport.write(self.res_str.as_bytes()).unwrap();
-        //         Next::end()
-        //     }
-        //     // Route::Echo(..) => {
-        //     //     if self.write_pos < self.read_pos {
-        //     //         match transport.write(&self.buf[self.write_pos..self.read_pos]) {
-        //     //             Ok(0) => panic!("write ZERO"),
-        //     //             Ok(n) => {
-        //     //                 self.write_pos += n;
-        //     //                 Next::write()
-        //     //             }
-        //     //             Err(e) => match e.kind() {
-        //     //                 io::ErrorKind::WouldBlock => Next::write(),
-        //     //                 _ => {
-        //     //                     println!("write error {:?}", e);
-        //     //                     Next::end()
-        //     //                 }
-        //     //             }
-        //     //         }
-        //     //     } else if !self.eof {
-        //     //         Next::read()
-        //     //     } else {
-        //     //         Next::end()
-        //     //     }
-        //     // }
-        //     _ => unreachable!()
-        // }
+       
     }
 }

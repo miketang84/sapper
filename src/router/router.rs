@@ -2,10 +2,12 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
-use iron::{Request, Response, Handler, IronResult, IronError};
-use iron::{status, method, headers};
-use iron::typemap::Key;
-use iron::modifiers::Redirect;
+use request::Request;
+use response::Response;
+use sapp::SHandler;
+use sapp::Result;
+use sapp::Error;
+use hyper::{status, method, header};
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
@@ -129,37 +131,40 @@ impl Router {
             options.push(method::Head);
         }
 
-        let mut res = Response::with(status::Ok);
+        let mut res = Response::with(status::StatusCode::Ok);
         res.headers.set(headers::Allow(options));
         res
     }
 
     // Tests for a match by adding or removing a trailing slash.
-    fn redirect_slash(&self, req : &Request) -> Option<IronError> {
-        let mut url = req.url.clone();
-        let mut path = url.path.join("/");
+    // fn redirect_slash(&self, req : &Request) -> Option<IronError> {
+    //     let mut url = req.url.clone();
+    //     let mut path = url.path.join("/");
 
-        if let Some(last_char) = path.chars().last() {
-            if last_char == '/' {
-                path.pop();
-                url.path.pop();
-            } else {
-                path.push('/');
-                url.path.push(String::new());
-            }
-        }
+    //     if let Some(last_char) = path.chars().last() {
+    //         if last_char == '/' {
+    //             path.pop();
+    //             url.path.pop();
+    //         } else {
+    //             path.push('/');
+    //             url.path.push(String::new());
+    //         }
+    //     }
 
-        self.recognize(&req.method, &path).and(
-            Some(IronError::new(TrailingSlash,
-                                (status::MovedPermanently, Redirect(url))))
-        )
-    }
+    //     self.recognize(&req.method, &path).and(
+    //         Some(IronError::new(TrailingSlash,
+    //                             (status::MovedPermanently, Redirect(url))))
+    //     )
+    // }
 
-    fn handle_method(&self, req: &mut Request, path: &str) -> Option<IronResult<Response>> {
+    fn handle_method(&self, req: &mut Request, path: &str) -> Option<Result<Response>> {
         if let Some(matched) = self.recognize(&req.method, path) {
-            req.extensions.insert::<Router>(matched.params);
+            req.ext.insert::<Router>(matched.params);
             Some(matched.handler.handle(req))
-        } else { self.redirect_slash(req).and_then(|redirect| Some(Err(redirect))) }
+        } else { 
+            panic!("not matched!");
+            //self.redirect_slash(req).and_then(|redirect| Some(Err(redirect))) 
+        }
     }
 }
 

@@ -1,8 +1,8 @@
 use sapp::Result;
 use sapp::SModule;
-use router::Router;
 use request::Request;
 use response::Response;
+use srouter::SRouter;
 
 pub struct Biz;
 
@@ -40,7 +40,7 @@ impl SModule for Biz {
     }
     
     // here add routers ....
-    fn router(&self, router: &mut Router, prefix: &str) {
+    fn router(&self, router: &mut SRouter) {
         // need to use Router struct here
         // XXX: here could not write as this, should record first, not parse it now
         

@@ -11,16 +11,21 @@ mod biz;
 use biz::Biz;
 use sapp::SApp;
 use sapp::SAppWrapper;
+use request::Request;
+use response::Response;
+use sapp::Result;
 
 // must impl it
 // total entry and exitice
 impl SAppWrapper for SApp {
     fn before(&mut Request) -> Result<()> {
         
+        Ok(())
     }
     
     fn after(&Request, &mut Response) -> Result<()> {
         
+        Ok(())
     }
 }
 
@@ -33,7 +38,7 @@ fn main() {
         
         let mut sapp = SApp::new();
         // register modules
-        sapp.add_smodule("/", Biz);
+        sapp.add_smodule(Biz);
         
         sapp
         

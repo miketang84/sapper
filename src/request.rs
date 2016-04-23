@@ -4,6 +4,7 @@ use hyper::method::Method;
 use hyper::header::Headers;
 use hyper::version::HttpVersion;
 use std::collections::HashMap;
+use typemap::TypeMap;
 
 #[derive(Default)]
 pub struct Request {
@@ -23,7 +24,7 @@ pub struct Request {
     // combined params of queries and body_params
     full_params: Option<HashMap<String, String>>,
     // ext key value pair
-    // ext: Option<HashMap<String, String>>
+    ext: TypeMap
     
 } 
 
@@ -41,7 +42,8 @@ impl Request {
                 raw_body: None,
                 queries: None,
                 body_params: None,
-                full_params: None
+                full_params: None,
+                ext: TypeMap::new()
             }
         }
         else {
@@ -53,7 +55,8 @@ impl Request {
                 raw_body: None,
                 queries: None,
                 body_params: None,
-                full_params: None
+                full_params: None,
+                ext: TypeMap::new()
             }
         }
     }
