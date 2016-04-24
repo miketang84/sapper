@@ -4,6 +4,7 @@ use sapp::SModule;
 use request::Request;
 use response::Response;
 use srouter::SRouter;
+use sapp::SHandler;
 
 pub struct Biz;
 

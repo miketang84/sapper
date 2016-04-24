@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error as StdError;
 use std::fmt;
+use std::any::Any;
 
 use request::Request;
 use response::Response;
@@ -58,55 +59,64 @@ impl Router {
     /// a `Chain`, a `SHandler`, which contains an authorization middleware and
     /// a controller function, so that you can confirm that the request is
     /// authorized for this route before handling it.
-    pub fn route<H, S>(&mut self, method: Method,
-                       glob: S, handler: H) -> &mut Router
-    where H: SHandler + 'static, S: AsRef<str> {
+    // pub fn route<H, S>(&mut self, method: Method,
+    //                    glob: S, handler: H) -> &mut Router
+    // where H: SHandler + 'static, S: AsRef<str> {
+    //     self.routers.entry(method).or_insert(Recognizer::new())
+    //                 // .add(glob.as_ref(), Box::new(handler));
+    //                 .add(glob.as_ref(), handler);
+    //     self
+    // }
+    pub fn route<S>(&mut self, method: Method,
+                       glob: S, handler: Box<SHandler + 'static>) -> &mut Router
+    where S: AsRef<str> {
         self.routers.entry(method).or_insert(Recognizer::new())
-                    .add(glob.as_ref(), Box::new(handler));
+                    // .add(glob.as_ref(), Box::new(handler));
+                    .add(glob.as_ref(), handler);
         self
     }
 
-    /// Like route, but specialized to the `Get` method.
-    pub fn get<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(Method::Get, glob, handler)
-    }
+    // /// Like route, but specialized to the `Get` method.
+    // pub fn get<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    //     self.route(Method::Get, glob, handler)
+    // }
 
-    /// Like route, but specialized to the `Post` method.
-    pub fn post<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(Method::Post, glob, handler)
-    }
+    // /// Like route, but specialized to the `Post` method.
+    // pub fn post<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    //     self.route(Method::Post, glob, handler)
+    // }
 
-    /// Like route, but specialized to the `Put` method.
-    pub fn put<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(Method::Put, glob, handler)
-    }
+    // /// Like route, but specialized to the `Put` method.
+    // pub fn put<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    //     self.route(Method::Put, glob, handler)
+    // }
 
-    /// Like route, but specialized to the `Delete` method.
-    pub fn delete<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(Method::Delete, glob, handler)
-    }
+    // /// Like route, but specialized to the `Delete` method.
+    // pub fn delete<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    //     self.route(Method::Delete, glob, handler)
+    // }
 
-    /// Like route, but specialized to the `Head` method.
-    pub fn head<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(Method::Head, glob, handler)
-    }
+    // /// Like route, but specialized to the `Head` method.
+    // pub fn head<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    //     self.route(Method::Head, glob, handler)
+    // }
 
-    /// Like route, but specialized to the `Patch` method.
-    pub fn patch<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(Method::Patch, glob, handler)
-    }
+    // /// Like route, but specialized to the `Patch` method.
+    // pub fn patch<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    //     self.route(Method::Patch, glob, handler)
+    // }
 
-    /// Like route, but specialized to the `Options` method.
-    pub fn options<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.route(Method::Options, glob, handler)
-    }
+    // /// Like route, but specialized to the `Options` method.
+    // pub fn options<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    //     self.route(Method::Options, glob, handler)
+    // }
 
-    /// Route will match any method, including gibberish.
-    /// In case of ambiguity, handlers specific to methods will be preferred.
-    pub fn any<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
-        self.wildcard.add(glob.as_ref(), Box::new(handler));
-        self
-    }
+    // /// Route will match any method, including gibberish.
+    // /// In case of ambiguity, handlers specific to methods will be preferred.
+    // pub fn any<H: SHandler + 'static, S: AsRef<str>>(&mut self, glob: S, handler: H) -> &mut Router {
+    //     self.wildcard.add(glob.as_ref(), Box::new(handler));
+    //     self
+    // }
 
     fn recognize(&self, method: &Method, path: &str)
                      -> Option<Match<&Box<SHandler>>> {
@@ -221,4 +231,18 @@ impl Key for SRouter { type Value = Params; }
 
 // impl Error for TrailingSlash {
 //     fn description(&self) -> &str { "Trailing Slash" }
+// }
+
+
+// impl<F> SHandler for F
+// where F: Send + Sync + Any + Fn(&mut Request) -> Result<Response> {
+//     fn handle(&self, req: &mut Request) -> Result<Response> {
+//         (*self)(req)
+//     }
+// }
+
+// impl SHandler for Box<SHandler> {
+//     fn handle(&self, req: &mut Request) -> Result<Response> {
+//         (**self).handle(req)
+//     }
 // }

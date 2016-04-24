@@ -19,7 +19,7 @@ pub use request::Request;
 pub use response::Response;
 pub use router::Router;
 pub use srouter::SRouter;
-
+pub use shandler::SHandler;
 
 pub enum Error {
     BeforeError,
@@ -88,10 +88,12 @@ impl<T: SModule + Send + 'static> SApp<T> {
         // fill the self.router_wrap finally
         // assign this new closure to the router_wrap router map pair  prefix + url part 
         
-        for (method, handler_vec) in self.router.get_inner_router() {
+        for (method, handler_vec) in &self.router.router {
             // add to wrapped router
-            for &(ref glob, ref handler) in handler_vec.iter() {
-                self.router_wrap.route(*method, *glob, handler);
+            for &(glob, ref handler) in handler_vec.iter() {
+                self.router_wrap.route(*method, glob, Box::new(|req: &mut Request| -> Result<Response> {
+                    (**handler).handle(req)
+                }));
             }
         }
         

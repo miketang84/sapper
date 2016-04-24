@@ -5,10 +5,10 @@ use hyper::method::Method;
 use shandler::SHandler;
 
 
-type InnerRouter = HashMap<Method, Vec<(&'static str, Box<SHandler>)>>;
+pub type InnerRouter = HashMap<Method, Vec<(&'static str, Box<SHandler>)>>;
 
 pub struct SRouter {
-    router: InnerRouter
+    pub router: InnerRouter
 }
 
 
@@ -62,8 +62,9 @@ impl SRouter {
         self.route(Method::Options, glob, handler)
     }
     
-    pub fn get_inner_router(&self) -> &InnerRouter {
-        &self.router
-    }
+    // pub fn get_inner_router(&self) -> &InnerRouter {
+    //     &self.router
+    // }
+    
 }
 

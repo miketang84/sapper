@@ -16,6 +16,7 @@ where F: Send + Sync + Any + Fn(&mut Request) -> Result<Response> {
     }
 }
 
+
 impl SHandler for Box<SHandler> {
     fn handle(&self, req: &mut Request) -> Result<Response> {
         (**self).handle(req)
