@@ -22,12 +22,14 @@ pub use router::Router;
 pub use srouter::SRouter;
 pub use shandler::SHandler;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     BeforeError,
     HandlerError,
     AfterError,
-    RouterConfigError
+    RouterConfigError,
+    RedirectError,
+    NotFoundError,
 }
 
 pub type Result<T> = ::std::result::Result<T, Error>; 
@@ -145,8 +147,19 @@ impl<T: SModule + Send + 'static, W: SAppWrapper + Send + 'static> HyperHandler<
                     path);
                 
                 // XXX: Need more work
-                self.response = self.router_wrap.handle_method(&mut sreq, &path).unwrap().ok();
-                // self.router_wrap.handle_method(sreq, &path).unwrap_or_else(||
+                // self.response = self.router_wrap.handle_method(&mut sreq, &path).unwrap().ok();
+                match self.router_wrap.handle_method(&mut sreq, &path).unwrap() {
+                    Ok(response) => self.response = Some(response),
+                    Err(e) => {
+                        if e == Error::NotFoundError {
+                            self.response = None
+                        }
+                    }
+                    
+                    
+                }
+                // TODO: complete it later
+                // .unwrap_or_else(||
                     // match req.method {
                     //     method::Options => Ok(self.handle_options(&path)),
                     //     // For HEAD, fall back to GET. Hyper ensures no response body is written.
@@ -183,7 +196,9 @@ impl<T: SModule + Send + 'static, W: SAppWrapper + Send + 'static> HyperHandler<
             None => {
                 // Inner Error
                 // end
-                Next::end()
+                res.set_status(StatusCode::NotFound);
+                res.headers_mut().set(ContentLength("404 Not Found".len() as u64));
+                Next::write()
             }
         }
         
@@ -200,6 +215,7 @@ impl<T: SModule + Send + 'static, W: SAppWrapper + Send + 'static> HyperHandler<
                 Next::end()
             },
             None => {
+                transport.write("404 Not Found".as_bytes()).unwrap();
                 // end
                 Next::end()
             }

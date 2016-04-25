@@ -121,11 +121,8 @@ impl Router {
 
     fn recognize(&self, method: &Method, path: &str)
                      -> Option<Match<&Arc<Box<SHandler>>>> {
-        let r = self.routers.get(method).and_then(|router| router.recognize(path).ok())
-            .or(self.wildcard.recognize(path).ok());
-            
-        
-        r
+        self.routers.get(method).and_then(|router| router.recognize(path).ok())
+            .or(self.wildcard.recognize(path).ok())
     }
 
     // fn handle_options(&self, path: &str) -> Response {
@@ -154,7 +151,7 @@ impl Router {
     // }
 
     // Tests for a match by adding or removing a trailing slash.
-    // fn redirect_slash(&self, req : &Request) -> Option<IronError> {
+    // fn redirect_slash(&self, req : &Request) -> Option<Error> {
     //     let mut url = req.url.clone();
     //     let mut path = url.path.join("/");
 
@@ -168,8 +165,8 @@ impl Router {
     //         }
     //     }
 
-    //     self.recognize(&req.method, &path).and(
-    //         Some(IronError::new(TrailingSlash,
+    //     self.recognize(&req.method(), &path).and(
+    //         Some(Error::new(TrailingSlash,
     //                             (status::MovedPermanently, Redirect(url))))
     //     )
     // }
@@ -179,8 +176,9 @@ impl Router {
             req.get_ext().insert::<SRouter>(matched.params);
             Some(matched.handler.handle(req))
         } else { 
-            panic!("router not matched!");
-            //self.redirect_slash(req).and_then(|redirect| Some(Err(redirect))) 
+            // panic!("router not matched!");
+            // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
+            Some(Err(Error::NotFoundError)) 
         }
     }
 }

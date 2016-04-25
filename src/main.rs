@@ -29,6 +29,11 @@ use sapp::SModule;
 use sapp::SHandler;
 
 
+
+mod biz;
+use biz::Biz;
+
+
 #[derive(Clone)]
 struct MyApp;
 // must impl it
@@ -47,10 +52,6 @@ impl SAppWrapper for MyApp {
     }
 }
 
-
-
-mod biz;
-use biz::Biz;
 
 
 fn main() {
