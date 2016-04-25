@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Mike Tang <miketang84@outlook.com>"]
 
 [dependencies]
-hyper = {path="../../hyper"}
+hyper = { git="https://github.com/hyperium/hyper.git", branch = "mio" }
 log = "0.3"
 env_logger = "0.3"
 route-recognizer = "0.1"
