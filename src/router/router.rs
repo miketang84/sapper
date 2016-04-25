@@ -12,6 +12,7 @@ use srouter::SRouter;
 use hyper::{status, header};
 use hyper::method::Method;
 use typemap::Key;
+use std::sync::Arc;
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
@@ -20,9 +21,9 @@ use recognizer::{Match, Params};
 /// for the Iron framework.
 pub struct Router {
     // The routers, specialized by method.
-    routers: HashMap<Method, Recognizer<Box<SHandler>>>,
+    routers: HashMap<Method, Recognizer<Arc<Box<SHandler>>>>,
     // Routes that accept any method.
-    wildcard: Recognizer<Box<SHandler>>
+    wildcard: Recognizer<Arc<Box<SHandler>>>
 }
 
 impl Router {
@@ -68,7 +69,7 @@ impl Router {
     //     self
     // }
     pub fn route<S>(&mut self, method: Method,
-                       glob: S, handler: Box<SHandler + 'static>) -> &mut Router
+                       glob: S, handler: Arc<Box<SHandler>>) -> &mut Router
     where S: AsRef<str> {
         self.routers.entry(method).or_insert(Recognizer::new())
                     // .add(glob.as_ref(), Box::new(handler));
@@ -119,9 +120,12 @@ impl Router {
     // }
 
     fn recognize(&self, method: &Method, path: &str)
-                     -> Option<Match<&Box<SHandler>>> {
-        self.routers.get(method).and_then(|router| router.recognize(path).ok())
-            .or(self.wildcard.recognize(path).ok())
+                     -> Option<Match<&Arc<Box<SHandler>>>> {
+        let r = self.routers.get(method).and_then(|router| router.recognize(path).ok())
+            .or(self.wildcard.recognize(path).ok());
+            
+        
+        r
     }
 
     // fn handle_options(&self, path: &str) -> Response {
@@ -175,7 +179,7 @@ impl Router {
             req.get_ext().insert::<SRouter>(matched.params);
             Some(matched.handler.handle(req))
         } else { 
-            panic!("not matched!");
+            panic!("router not matched!");
             //self.redirect_slash(req).and_then(|redirect| Some(Err(redirect))) 
         }
     }

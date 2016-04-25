@@ -12,7 +12,7 @@ use hyper::server::Response as HyperResponse;
 
 use std::result::Result as StdResult;
 use std::error::Error as StdError;
-
+use std::sync::Arc;
 
 
 pub use request::Request;
@@ -21,6 +21,7 @@ pub use router::Router;
 pub use srouter::SRouter;
 pub use shandler::SHandler;
 
+#[derive(Debug)]
 pub enum Error {
     BeforeError,
     HandlerError,
@@ -38,6 +39,7 @@ pub trait SModule {
     
     // here add routers ....
     fn router(&self, &mut SRouter) -> Result<()>;
+    // fn router(&self, SRouter) -> Result<SRouter>;
     
 }
 
@@ -53,7 +55,7 @@ pub struct SApp<T: SModule + Send + 'static> {
     pub modules: Vec<T>,
     
     // router, keep the original handler function
-    pub router: SRouter,
+    // pub router: SRouter,
     // wrapped router, keep the wrapped handler function
     // for actually use to recognize
     pub router_wrap: Router,
@@ -65,7 +67,7 @@ impl<T: SModule + Send + 'static> SApp<T> {
     pub fn new() -> SApp<T> {
         SApp {
             modules: Vec::new(),
-            router: SRouter::new(),
+            // router: SRouter::new(),
             router_wrap: Router::new(),
             response: None,
         }
@@ -75,9 +77,10 @@ impl<T: SModule + Send + 'static> SApp<T> {
     // prefix:  such as '/user'
     pub fn add_smodule(&mut self, sm: T) -> &mut Self {
         
+        let mut router = SRouter::new();
         // get the sm router
         // pass self.router in
-        sm.router(&mut self.router);
+        sm.router(&mut router).unwrap();
         // combile this router to global big router
         // create a new closure, containing 
         //      0. execute sapp.before();
@@ -88,12 +91,17 @@ impl<T: SModule + Send + 'static> SApp<T> {
         // fill the self.router_wrap finally
         // assign this new closure to the router_wrap router map pair  prefix + url part 
         
-        for (method, handler_vec) in &self.router.router {
+        // println!("router length: {}", router.into_router().len());
+        
+        for (method, handler_vec) in router.into_router() {
             // add to wrapped router
             for &(glob, ref handler) in handler_vec.iter() {
-                self.router_wrap.route(*method, glob, Box::new(|req: &mut Request| -> Result<Response> {
+                let method = method.clone();
+                let glob = glob.clone();
+                let handler = handler.clone();
+                self.router_wrap.route(method, glob, Arc::new(Box::new(move |req: &mut Request| -> Result<Response> {
                     (**handler).handle(req)
-                }));
+                })));
             }
         }
         
@@ -111,7 +119,11 @@ impl<T: SModule + Send + 'static> HyperHandler<HttpStream> for SApp<T> {
                 
                 let path = &path[..];
                 // make swiftrs request from hyper request
-                let mut sreq = Request::new(req, path);
+                let mut sreq = Request::new(
+                    req.method().clone(),
+                    req.version().clone(),
+                    req.headers().clone(),
+                    path);
                 
                 // XXX: Need more work
                 self.response = self.router_wrap.handle_method(&mut sreq, &path).unwrap().ok();
@@ -142,9 +154,11 @@ impl<T: SModule + Send + 'static> HyperHandler<HttpStream> for SApp<T> {
 
     fn on_response(&mut self, res: &mut HyperResponse) -> Next {
         match self.response {
-            Some(response) => {
-                // here, set hyper response status code, and headers
-                res.headers_mut().set(ContentLength("it do.".len() as u64));
+            Some(ref response) => {
+                if let &Some(ref body) = response.body() {
+                    // here, set hyper response status code, and headers
+                    res.headers_mut().set(ContentLength(body.len() as u64));
+                }
                 Next::write()
             },
             None => {
@@ -159,9 +173,11 @@ impl<T: SModule + Send + 'static> HyperHandler<HttpStream> for SApp<T> {
 
     fn on_response_writable(&mut self, transport: &mut Encoder<HttpStream>) -> Next {
         match self.response {
-            Some(response) => {
-                // write response.body.unwrap() to transport
-                transport.write("it do.".as_bytes());
+            Some(ref response) => {
+                if let &Some(ref body) = response.body() {
+                    // write response.body.unwrap() to transport
+                    transport.write(body.as_bytes()).unwrap();
+                }
                 Next::end()
             },
             None => {

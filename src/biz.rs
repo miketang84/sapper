@@ -21,7 +21,7 @@ impl Biz {
     fn test(req: &mut Request) -> Result<Response> {
         
         let mut response = Response::new();
-        response.write_body("hello, boy!".to_string());
+        response.write_body("hello, tang gang gang!".to_string());
         
         Ok(response)
     }
@@ -48,6 +48,7 @@ impl SModule for Biz {
         
         
         router.get("/", Biz::index);
+        router.get("/123", Biz::index);
         router.get("/test", Biz::test);
         
         Ok(())

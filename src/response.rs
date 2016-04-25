@@ -41,6 +41,8 @@ impl Response {
         self.body = Some(body)
     }
     
-    
+    pub fn body(&self) -> &Option<String>{
+        &self.body
+    }
 }
 

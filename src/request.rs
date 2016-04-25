@@ -7,8 +7,12 @@ use std::collections::HashMap;
 use typemap::TypeMap;
 
 pub struct Request {
-    raw_request: HyperRequest,
+    // raw_request: &HyperRequest,
     
+    method: Method,
+    version: HttpVersion,
+    headers: Headers,
+
     // only path part of this url
     path: String,
     // query string part of this url
@@ -28,7 +32,7 @@ pub struct Request {
 } 
 
 impl Request {
-    pub fn new(raw_request: HyperRequest, pathstr: &str) -> Request {
+    pub fn new(method: Method, version: HttpVersion, headers: Headers, pathstr: &str) -> Request {
         // seperate path and query_string
         let pathvec: Vec<&str> = pathstr.split('?').collect();
         let path = pathvec[0].to_owned();
@@ -40,7 +44,10 @@ impl Request {
         }
         
         Request {
-            raw_request: raw_request,
+            method: method,
+            version: version,
+            headers: headers,
+            
             path: path,
             query_string: query_string,
             raw_body: None,
@@ -53,15 +60,15 @@ impl Request {
     }
     
     pub fn method(&self) -> &Method {
-        self.raw_request.method()
+        &self.method
     }
     
     pub fn version(&self) -> &HttpVersion {
-        self.raw_request.version()
+        &self.version
     }
     
     pub fn headers(&self) -> &Headers {
-        self.raw_request.headers()
+        &self.headers
     }
     
     pub fn path(&self) -> &String {

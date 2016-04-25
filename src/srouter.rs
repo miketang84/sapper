@@ -1,14 +1,14 @@
-
+use std::sync::Arc;
 use std::collections::HashMap;
 use hyper::method::Method;
 
 use shandler::SHandler;
 
 
-pub type InnerRouter = HashMap<Method, Vec<(&'static str, Box<SHandler>)>>;
+pub type InnerRouter = HashMap<Method, Vec<(&'static str, Arc<Box<SHandler>>)>>;
 
 pub struct SRouter {
-    pub router: InnerRouter
+    router: InnerRouter
 }
 
 
@@ -23,7 +23,7 @@ impl SRouter {
                        glob: &'static str, handler: H) -> &mut SRouter
     where H: SHandler + 'static {
         self.router.entry(method).or_insert(Vec::new())
-                    .push((glob, Box::new(handler)));
+                    .push((glob, Arc::new(Box::new(handler))));
         self
     }
 
@@ -62,9 +62,9 @@ impl SRouter {
         self.route(Method::Options, glob, handler)
     }
     
-    // pub fn get_inner_router(&self) -> &InnerRouter {
-    //     &self.router
-    // }
+    pub fn into_router(&self) -> &InnerRouter {
+        &self.router
+    }
     
 }
 
