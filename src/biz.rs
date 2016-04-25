@@ -6,7 +6,12 @@ use response::Response;
 use srouter::SRouter;
 use sapp::SHandler;
 
+#[derive(Clone)]
 pub struct Biz;
+
+// unsafe impl Send for Biz {}
+// unsafe impl Sync for Biz {}
+
 
 impl Biz {
     // those handlers in module Biz
@@ -32,11 +37,12 @@ impl Biz {
 impl SModule for Biz {
     
     fn before(&self, req: &mut Request) -> Result<()> {
-        
+        println!("{}", "in Biz before.");
         Ok(())
     }
     
-    fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
+    fn after(&self, req: &mut Request, res: &mut Response) -> Result<()> {
+        println!("{}", "in Biz after.");
         
         Ok(())
     }

@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
+#![feature(reflect_marker)]
 extern crate hyper;
 extern crate env_logger;
 #[macro_use]
@@ -28,16 +29,19 @@ use sapp::SModule;
 use sapp::SHandler;
 
 
-
+#[derive(Clone)]
+struct MyApp;
 // must impl it
 // total entry and exitice
-impl<T: SModule + Send + 'static> SAppWrapper for SApp<T> {
-    fn before(req: &mut Request) -> Result<()> {
+impl SAppWrapper for MyApp {
+    fn before(&self, req: &mut Request) -> Result<()> {
+        println!("{}", "in SAppWrapper before.");
         
         Ok(())
     }
     
-    fn after(req: &Request, res: &mut Response) -> Result<()> {
+    fn after(&self, req: &mut Request, res: &mut Response) -> Result<()> {
+        println!("{}", "in SAppWrapper after.");
         
         Ok(())
     }
@@ -56,6 +60,7 @@ fn main() {
     let _guard = server.handle(|_| {
         
         let mut sapp = SApp::new();
+        sapp.with_wrapper(MyApp);
         // register modules
         sapp.add_smodule(Biz);
         

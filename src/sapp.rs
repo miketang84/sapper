@@ -13,7 +13,8 @@ use hyper::server::Response as HyperResponse;
 use std::result::Result as StdResult;
 use std::error::Error as StdError;
 use std::sync::Arc;
-
+use std::marker::Reflect;
+use std::clone::Clone;
 
 pub use request::Request;
 pub use response::Response;
@@ -35,7 +36,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 pub trait SModule {
     fn before(&self, &mut Request) -> Result<()>;
     
-    fn after(&self, &Request, &mut Response) -> Result<()>;
+    fn after(&self, &mut Request, &mut Response) -> Result<()>;
     
     // here add routers ....
     fn router(&self, &mut SRouter) -> Result<()>;
@@ -44,16 +45,15 @@ pub trait SModule {
 }
 
 pub trait SAppWrapper {
-    fn before(&mut Request) -> Result<()>;
+    fn before(&self, &mut Request) -> Result<()>;
     
-    fn after(&Request, &mut Response) -> Result<()>;
+    fn after(&self, &mut Request, &mut Response) -> Result<()>;
     
 }
 
 // later will add more fields
-pub struct SApp<T: SModule + Send + 'static> {
+pub struct SApp<T: SModule + Send + 'static, W: SAppWrapper + Send + 'static> {
     pub modules: Vec<T>,
-    
     // router, keep the original handler function
     // pub router: SRouter,
     // wrapped router, keep the wrapped handler function
@@ -61,16 +61,26 @@ pub struct SApp<T: SModule + Send + 'static> {
     pub router_wrap: Router,
     // response deliver
     pub response: Option<Response>,
+    pub wrapper: Option<W>,
 }
 
-impl<T: SModule + Send + 'static> SApp<T> {
-    pub fn new() -> SApp<T> {
+impl<T, W> SApp<T, W>
+    where   T: SModule + Send + Sync + Reflect + Clone + 'static, 
+            W: SAppWrapper + Send + Sync + Reflect + Clone + 'static 
+    {
+    pub fn new() -> SApp<T, W> {
         SApp {
             modules: Vec::new(),
             // router: SRouter::new(),
             router_wrap: Router::new(),
             response: None,
+            wrapper: None,
         }
+    }
+    
+    pub fn with_wrapper(&mut self, w: W) -> &mut Self {
+        self.wrapper = Some(w);
+        self
     }
     
     // add methods of this smodule
@@ -92,6 +102,7 @@ impl<T: SModule + Send + 'static> SApp<T> {
         // assign this new closure to the router_wrap router map pair  prefix + url part 
         
         // println!("router length: {}", router.into_router().len());
+        // let wrapper = self.wrapper.clone();
         
         for (method, handler_vec) in router.into_router() {
             // add to wrapped router
@@ -99,8 +110,16 @@ impl<T: SModule + Send + 'static> SApp<T> {
                 let method = method.clone();
                 let glob = glob.clone();
                 let handler = handler.clone();
+                let sm = sm.clone();
+                let wrapper = self.wrapper.clone().unwrap();
                 self.router_wrap.route(method, glob, Arc::new(Box::new(move |req: &mut Request| -> Result<Response> {
-                    (**handler).handle(req)
+                    wrapper.before(req).unwrap();
+                    sm.before(req).unwrap();
+                    let res: Result<Response> = handler.handle(req);
+                    let mut response = res.unwrap();
+                    sm.after(req, &mut response).unwrap();
+                    wrapper.after(req, &mut response).unwrap();
+                    Ok(response)
                 })));
             }
         }
@@ -112,7 +131,7 @@ impl<T: SModule + Send + 'static> SApp<T> {
 }
 
 
-impl<T: SModule + Send + 'static> HyperHandler<HttpStream> for SApp<T> {
+impl<T: SModule + Send + 'static, W: SAppWrapper + Send + 'static> HyperHandler<HttpStream> for SApp<T, W> {
     fn on_request(&mut self, req: HyperRequest) -> Next {
         match *req.uri() {
             RequestUri::AbsolutePath(ref path) =>  {
