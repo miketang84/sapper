@@ -1,6 +1,6 @@
 # SApp
  
-SApp, a swift web framework, written in Rust.
+SApp, a light web framework, written in Rust.
 
 SApp focuses on easy use.
 
