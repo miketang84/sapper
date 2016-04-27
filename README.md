@@ -37,6 +37,15 @@ or any other url to test it.
 - Typesafe abstraction, keep the same spirit with hyper;
 - For easy use, will supply some convenient macros to help write business logic;
 
+## TODO
+
+1. [] QueryParams (x-www-form-urlencoded);
+2. [] BodyParams (x-www-form-urlencoded);
+3. [] BodyJsonParams;
+4. [] some macros;
+5. [] other components;
+
+
 
 ## Related Projects
 
