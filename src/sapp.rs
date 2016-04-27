@@ -114,7 +114,7 @@ impl<T, W> SApp<T, W>
     
     // add methods of this smodule
     // prefix:  such as '/user'
-    pub fn add_smodule(&mut self, sm: T) -> &mut Self {
+    pub fn add_module(&mut self, sm: T) -> &mut Self {
         
         let mut router = SRouter::new();
         // get the sm router
