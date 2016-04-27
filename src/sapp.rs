@@ -168,6 +168,9 @@ pub struct RequestHandler<
     // wrapped router, keep the wrapped handler function
     // for actually use to recognize
     pub sapp: Arc<Box<SApp<T, W>>>,
+    pub buf: Vec<u8>,
+    pub body: String,
+    pub body_length: Option<u64>,
     // response deliver
     pub response: Option<Response>,
 }
@@ -179,6 +182,9 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
     pub fn new(sapp: Arc<Box<SApp<T, W>>>) -> RequestHandler<T, W> {
         RequestHandler {
             sapp: sapp,
+            buf: vec![0; 2048],
+            body: String::new(),
+            body_length: None,
             response: None
         }
     }
@@ -201,6 +207,14 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     req.version().clone(),
                     req.headers().clone(),
                     path);
+                    
+                if let Some(len) = req.headers().get::<ContentLength>() {
+                    self.body_length = Some(**len);
+                    Next::read_and_write()
+                } 
+                else {
+                    Next::write()
+                } 
                 
                 // XXX: Need more work
                 // self.response = self.routers.handle_method(&mut sreq, &path).unwrap().ok();
@@ -228,13 +242,52 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     //     _ => Err(IronError::new(NoRoute, status::NotFound))
                     // }
                 // );
+                // currently
                 
-                Next::write()
+                
+                // if is_more {
+                //     Next::read_and_write()
+                // } else {
+                //     Next::write()
+                // }
+            
+                // Next::read_and_write()
+                // Next::write()
             },
             _ => Next::write()
         }
     }
     fn on_request_readable(&mut self, transport: &mut Decoder<HttpStream>) -> Next {
+        match self.body_length {
+            Some(len) => {
+                match transport.read(&mut self.buf) {
+                    Ok(0) => {
+                        debug!("Read 0, eof");
+                        
+                        Next::write()
+                    },
+                    Ok(n) => {
+                        self.read_pos += n;
+                        self.body.push_str(str::from_utf8(self.buf));
+                        Next::read_and_write()
+                    }
+                    Err(e) => match e.kind() {
+                        io::ErrorKind::WouldBlock => Next::read_and_write(),
+                        _ => {
+                            println!("read error {:?}", e);
+                            Next::end()
+                        }
+                    }
+                }
+                
+            },
+            None => {
+                Next::write()
+            } 
+            
+        }
+        
+        
         
         
         Next::write()
