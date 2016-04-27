@@ -10,6 +10,8 @@ extern crate log;
 extern crate route_recognizer as recognizer;
 extern crate typemap;
 
+
+use std::sync::Arc;
 use hyper::server::Server;
 
 mod request;
@@ -27,7 +29,7 @@ use sapp::Response;
 use sapp::Result;
 use sapp::SModule;
 use sapp::SHandler;
-
+use sapp::RequestHandler;
 
 
 mod biz;
@@ -57,16 +59,15 @@ impl SAppWrapper for MyApp {
 fn main() {
     env_logger::init().unwrap();
     
+    let mut sapp = SApp::new();
+    sapp.with_wrapper(MyApp)
+        .add_smodule(Biz);
+    
+    let arc_sapp = Arc::new(Box::new(sapp));
+    
     let server = Server::http(&"127.0.0.1:1337".parse().unwrap()).unwrap();
-    let _guard = server.handle(|_| {
-        
-        let mut sapp = SApp::new();
-        sapp.with_wrapper(MyApp);
-        // register modules
-        sapp.add_smodule(Biz);
-        
-        sapp
-        
+    let _guard = server.handle(move |_| {
+        RequestHandler::new(arc_sapp.clone())
     });
     println!("Listening on http://127.0.0.1:1337");
 }

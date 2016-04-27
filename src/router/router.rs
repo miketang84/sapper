@@ -8,7 +8,7 @@ use response::Response;
 use shandler::SHandler;
 use sapp::Result;
 use sapp::Error;
-use srouter::SRouter;
+use sapp::PathParams;
 use hyper::{status, header};
 use hyper::method::Method;
 use typemap::Key;
@@ -173,7 +173,7 @@ impl Router {
 
     pub fn handle_method(&self, req: &mut Request, path: &str) -> Option<Result<Response>> {
         if let Some(matched) = self.recognize(&req.method(), path) {
-            req.get_ext().insert::<SRouter>(matched.params);
+            req.get_ext_mut().insert::<PathParams>(matched.params);
             Some(matched.handler.handle(req))
         } else { 
             // panic!("router not matched!");
@@ -183,7 +183,7 @@ impl Router {
     }
 }
 
-impl Key for SRouter { type Value = Params; }
+impl Key for PathParams { type Value = Params; }
 
 // impl SHandler for Router {
 //     fn handle(&self, req: &mut Request) -> IronResult<Response> {

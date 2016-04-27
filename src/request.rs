@@ -7,25 +7,22 @@ use std::collections::HashMap;
 use typemap::TypeMap;
 
 pub struct Request {
-    // raw_request: &HyperRequest,
-    
     method: Method,
     version: HttpVersion,
     headers: Headers,
-
     // only path part of this url
     path: String,
     // query string part of this url
     query_string: Option<String>,
     // if has body, keep it as raw here
     raw_body: Option<String>,
-    // params pair parsed from url query string
-    queries: Option<HashMap<String, String>>,
-    // params pair parsed from body
-    // if body is json, limit it to one level
-    body_params: Option<HashMap<String, String>>,
-    // combined params of queries and body_params
-    full_params: Option<HashMap<String, String>>,
+    // // params pair parsed from url query string
+    // queries: Option<HashMap<String, String>>,
+    // // params pair parsed from body
+    // // if body is json, limit it to one level
+    // body_params: Option<HashMap<String, String>>,
+    // // combined params of queries and body_params
+    // full_params: Option<HashMap<String, String>>,
     // ext key value pair
     ext: TypeMap
     
@@ -51,9 +48,9 @@ impl Request {
             path: path,
             query_string: query_string,
             raw_body: None,
-            queries: None,
-            body_params: None,
-            full_params: None,
+            // queries: None,
+            // body_params: None,
+            // full_params: None,
             ext: TypeMap::new()
         }
 
@@ -83,19 +80,23 @@ impl Request {
         &self.raw_body
     }
     
-    pub fn query(&self) -> &Option<HashMap<String, String>> {
-        &self.queries
+    // pub fn query(&self) -> &Option<HashMap<String, String>> {
+    //     &self.queries
+    // }
+    
+    // pub fn body(&self) -> &Option<HashMap<String, String>> {
+    //     &self.body_params
+    // }
+    
+    // pub fn params(&self) -> &Option<HashMap<String, String>> {
+    //     &self.full_params
+    // }
+    
+    pub fn get_ext(&mut self) -> &TypeMap {
+        &self.ext
     }
     
-    pub fn body(&self) -> &Option<HashMap<String, String>> {
-        &self.body_params
-    }
-    
-    pub fn params(&self) -> &Option<HashMap<String, String>> {
-        &self.full_params
-    }
-    
-    pub fn get_ext(&mut self) -> &mut TypeMap {
+    pub fn get_ext_mut(&mut self) -> &mut TypeMap {
         &mut self.ext
     }
 }
