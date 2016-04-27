@@ -80,6 +80,11 @@ impl Request {
         &self.raw_body
     }
     
+    pub fn set_raw_body(&mut self, body: String) -> &mut Self {
+        self.raw_body = Some(body);
+        self
+    }
+    
     // pub fn query(&self) -> &Option<HashMap<String, String>> {
     //     &self.queries
     // }

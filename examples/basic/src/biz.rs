@@ -26,6 +26,16 @@ impl Biz {
         Ok(response)
     }
     
+    fn test_post(req: &mut Request) -> Result<Response> {
+        
+        println!("in test_post, raw_body: {:?}", req.raw_body());
+        
+        let mut response = Response::new();
+        response.write_body("hello, I'am !".to_string());
+        
+        Ok(response)
+    }
+    
 }
 
 // set before, after middleware, and add routers
@@ -51,6 +61,7 @@ impl SModule for Biz {
         router.get("/", Biz::index);
         router.get("/123", Biz::index);
         router.get("/test", Biz::test);
+        router.post("/test", Biz::test_post);
         
         Ok(())
         

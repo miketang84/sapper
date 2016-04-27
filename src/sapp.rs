@@ -1,15 +1,18 @@
 
-
+use std::str;
 use std::io::{self, Read, Write};
 
 use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
-use hyper::header::ContentLength;
+use hyper::header::{ContentLength, ContentType};
 use hyper::net::HttpStream;
 
 use hyper::server::Server;
 use hyper::server::Handler as HyperHandler;
 use hyper::server::Request as HyperRequest;
 use hyper::server::Response as HyperResponse;
+use hyper::method::Method;
+use hyper::header::Headers;
+use hyper::version::HttpVersion;
 
 use std::result::Result as StdResult;
 use std::error::Error as StdError;
@@ -130,9 +133,6 @@ impl<T, W> SApp<T, W>
         // fill the self.routers finally
         // assign this new closure to the routers router map pair  prefix + url part 
         
-        // println!("router length: {}", router.into_router().len());
-        // let wrapper = self.wrapper.clone();
-        
         for (method, handler_vec) in router.into_router() {
             // add to wrapped router
             for &(glob, ref handler) in handler_vec.iter() {
@@ -168,9 +168,13 @@ pub struct RequestHandler<
     // wrapped router, keep the wrapped handler function
     // for actually use to recognize
     pub sapp: Arc<Box<SApp<T, W>>>,
+    pub path: String,
+    pub method: Method,
+    pub version: HttpVersion,
+    pub headers: Headers,
     pub buf: Vec<u8>,
     pub body: String,
-    pub body_length: Option<u64>,
+    pub has_body: bool,
     // response deliver
     pub response: Option<Response>,
 }
@@ -182,9 +186,13 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
     pub fn new(sapp: Arc<Box<SApp<T, W>>>) -> RequestHandler<T, W> {
         RequestHandler {
             sapp: sapp,
+            path: String::new(),
+            method: Default::default(),
+            version: Default::default(),
+            headers: Default::default(),
             buf: vec![0; 2048],
             body: String::new(),
-            body_length: None,
+            has_body: false,
             response: None
         }
     }
@@ -199,35 +207,42 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
     fn on_request(&mut self, req: HyperRequest) -> Next {
         match *req.uri() {
             RequestUri::AbsolutePath(ref path) =>  {
-                
-                let path = &path[..];
-                // make swiftrs request from hyper request
-                let mut sreq = Request::new(
-                    req.method().clone(),
-                    req.version().clone(),
-                    req.headers().clone(),
-                    path);
-                    
-                if let Some(len) = req.headers().get::<ContentLength>() {
-                    self.body_length = Some(**len);
+                // if has_body
+                if req.headers().get::<ContentLength>().is_some()
+                    || req.headers().get::<ContentType>().is_some() 
+                 {
+                    self.path = path.to_owned();
+                    self.method = req.method().clone();
+                    self.version = req.version().clone();
+                    self.headers = req.headers().clone();
+                    self.has_body = true;
                     Next::read_and_write()
                 } 
                 else {
+                    // if no body
+                    let path = &path[..];
+                    // make swiftrs request from hyper request
+                    let mut sreq = Request::new(
+                        req.method().clone(),
+                        req.version().clone(),
+                        req.headers().clone(),
+                        path);
+                        
+                    match self.sapp.routers.handle_method(&mut sreq, &path).unwrap() {
+                        Ok(response) => self.response = Some(response),
+                        Err(e) => {
+                            if e == Error::NotFoundError {
+                                self.response = None
+                            }
+                        }
+                    }
+                    
                     Next::write()
                 } 
                 
                 // XXX: Need more work
                 // self.response = self.routers.handle_method(&mut sreq, &path).unwrap().ok();
-                match self.sapp.routers.handle_method(&mut sreq, &path).unwrap() {
-                    Ok(response) => self.response = Some(response),
-                    Err(e) => {
-                        if e == Error::NotFoundError {
-                            self.response = None
-                        }
-                    }
-                    
-                    
-                }
+                
                 // TODO: complete it later
                 // .unwrap_or_else(||
                     // match req.method {
@@ -258,37 +273,44 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
         }
     }
     fn on_request_readable(&mut self, transport: &mut Decoder<HttpStream>) -> Next {
-        match self.body_length {
-            Some(len) => {
-                match transport.read(&mut self.buf) {
-                    Ok(0) => {
-                        debug!("Read 0, eof");
+        if self.has_body {
+            match transport.read(&mut self.buf) {
+                Ok(0) => {
+                    debug!("Read 0, eof");
+                    
+                    // TODO: need optimize
+                    let path = &self.path[..];
+                    let mut sreq = Request::new(
+                        self.method.clone(),
+                        self.version.clone(),
+                        self.headers.clone(),
+                        path);
+                    sreq.set_raw_body(self.body.clone());
                         
-                        Next::write()
-                    },
-                    Ok(n) => {
-                        self.read_pos += n;
-                        self.body.push_str(str::from_utf8(self.buf));
-                        Next::read_and_write()
-                    }
-                    Err(e) => match e.kind() {
-                        io::ErrorKind::WouldBlock => Next::read_and_write(),
-                        _ => {
-                            println!("read error {:?}", e);
-                            Next::end()
+                    match self.sapp.routers.handle_method(&mut sreq, path).unwrap() {
+                        Ok(response) => self.response = Some(response),
+                        Err(e) => {
+                            if e == Error::NotFoundError {
+                                self.response = None
+                            }
                         }
                     }
+                    // 
+                    return Next::write()
+                },
+                Ok(n) => {
+                    self.body.push_str(str::from_utf8(&self.buf[0..n]).unwrap());
+                    return Next::read_and_write()
                 }
-                
-            },
-            None => {
-                Next::write()
-            } 
-            
+                Err(e) => match e.kind() {
+                    io::ErrorKind::WouldBlock => return Next::read_and_write(),
+                    _ => {
+                        println!("read error {:?}", e);
+                        return Next::end()
+                    }
+                }
+            }
         }
-        
-        
-        
         
         Next::write()
     }
