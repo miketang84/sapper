@@ -4,11 +4,12 @@ SApp, a light web framework, written in Rust.
 
 SApp focuses on easy use.
 
-This project is in very alpha stage now, now I have verify the prototype of my thoughts, later need huge work to make it workable.
+This project is in very alpha stage now, I have verified the prototype of my thoughts, later need huge work to make it workable.
 
 Now , you can 
 
 ```
+cd examples/basic/
 cargo build
 cargo run
 ```
