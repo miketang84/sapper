@@ -42,7 +42,7 @@ pub struct PathParams;
 pub trait SModule {
     fn before(&self, &mut Request) -> Result<()>;
     
-    fn after(&self, &mut Request, &mut Response) -> Result<()>;
+    fn after(&self, &Request, &mut Response) -> Result<()>;
     
     // here add routers ....
     fn router(&self, &mut SRouter) -> Result<()>;
@@ -53,7 +53,7 @@ pub trait SModule {
 pub trait SAppWrapper {
     fn before(&self, &mut Request) -> Result<()>;
     
-    fn after(&self, &mut Request, &mut Response) -> Result<()>;
+    fn after(&self, &Request, &mut Response) -> Result<()>;
     
 }
 

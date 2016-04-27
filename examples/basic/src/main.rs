@@ -23,7 +23,7 @@ impl SAppWrapper for MyApp {
         Ok(())
     }
     
-    fn after(&self, req: &mut Request, res: &mut Response) -> Result<()> {
+    fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
         println!("{}", "in SAppWrapper after.");
         
         Ok(())

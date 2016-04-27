@@ -36,7 +36,7 @@ impl SModule for Biz {
         Ok(())
     }
     
-    fn after(&self, req: &mut Request, res: &mut Response) -> Result<()> {
+    fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
         println!("{}", "in Biz after.");
         
         Ok(())
