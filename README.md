@@ -1,8 +1,8 @@
-# SApp
+# Sappers
  
-SApp, a light web framework, written in Rust.
+Sappers, a light web framework, written in Rust.
 
-SApp focuses on easy use.
+Sappers focuses on easy use.
 
 This project is in very alpha stage now, I have verified the prototype of my thoughts, later need huge work to make it workable.
 
