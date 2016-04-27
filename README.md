@@ -33,8 +33,8 @@ or any other url to test it.
 - Async, based on hyper mio branch;
 - Sappers supplies only basic framework;
 - Sappers only processes small request and response (with small request body, returning small response body) now;
-- Three level granularities (global, module, function handler) middleware controller and unified middleware presentation; 
-- Typesafe abstraction, keep the same idea with hyper;
+- Three level granularity (global, module, function handler) middleware controller and unified middleware presentation; 
+- Typesafe abstraction, keep the same spirit with hyper;
 - For easy use, will supply some convenient macros to help write business logic;
 
 
