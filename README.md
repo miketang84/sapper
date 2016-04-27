@@ -1,15 +1,13 @@
 # Sappers
  
-Sappers, a light web framework, written in Rust.
+Sappers, a lightweight web framework, written in Rust.
 
-Sappers focuses on easy use.
-
-This project is in very alpha stage now, I have verified the prototype of my thoughts, later need huge work to make it workable.
+Sappers focuses on easy use. But it is in very alpha stage now.
 
 
 ## Example
 
-Now , you can 
+Now , you can boot the example server with:
 
 ```
 cd examples/basic/
@@ -17,11 +15,11 @@ cargo build
 cargo run
 ```
 
-to boot server, and visit 
+and open the browser, visit 
 
 `http://localhost:1337/`
 
-and
+or
 
 `http://localhost:1337/test`
 
@@ -42,8 +40,8 @@ or any other url to test it.
 1. [] QueryParams (x-www-form-urlencoded);
 2. [] BodyParams (x-www-form-urlencoded);
 3. [] BodyJsonParams;
-4. [] some macros;
-5. [] other components;
+4. [] Some macros;
+5. [] Other components;
 
 
 
@@ -52,8 +50,8 @@ or any other url to test it.
 Thanks to these projects below:
 
 - [hyper](https://github.com/hyperium/hyper) Sappers is based on hyper mio branch;
-- [iron](https://github.com/iron/iron) Sappers learn many design from iron;
-- [router](https://github.com/iron/router) Sappers steales many code from router;
+- [iron](https://github.com/iron/iron) Sappers learns many designs from iron;
+- [router](https://github.com/iron/router) Sappers steals router about code from it;
 - [recognizer](https://github.com/conduit-rust/route-recognizer.rs) Sappers uses this route recognizer;
 
 
