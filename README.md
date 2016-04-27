@@ -6,6 +6,9 @@ SApp focuses on easy use.
 
 This project is in very alpha stage now, I have verified the prototype of my thoughts, later need huge work to make it workable.
 
+
+## Example
+
 Now , you can 
 
 ```
@@ -24,3 +27,27 @@ and
 
 or any other url to test it.
 
+
+## Design
+
+- Async, based on hyper mio branch;
+- Sappers supplies only basic framework;
+- Sappers only processes small request and response (with small request body, returning small response body) now;
+- Three level granularities (global, module, function handler) middleware controller and unified middleware presentation; 
+- Typesafe abstraction, keep the same idea with hyper;
+- For easy use, will supply some convenient macros to help write business logic;
+
+
+## Related Projects
+
+Thanks to these projects below:
+
+- [hyper](https://github.com/hyperium/hyper) Sappers is based on hyper mio branch;
+- [iron](https://github.com/iron/iron) Sappers learn many design from iron;
+- [router](https://github.com/iron/router) Sappers steales many code from router;
+- [recognizer](https://github.com/conduit-rust/route-recognizer.rs) Sappers uses this route recognizer;
+
+
+## License
+
+MIT
