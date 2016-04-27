@@ -1,17 +1,12 @@
-use std::result::Result as StdResult;
-use sapp::Result;
-use sapp::SModule;
-use request::Request;
-use response::Response;
-use srouter::SRouter;
-use sapp::SHandler;
+
+use sappers::Result;
+use sappers::SModule;
+use sappers::Request;
+use sappers::Response;
+use sappers::SRouter;
 
 #[derive(Clone)]
 pub struct Biz;
-
-// unsafe impl Send for Biz {}
-// unsafe impl Sync for Biz {}
-
 
 impl Biz {
     // those handlers in module Biz

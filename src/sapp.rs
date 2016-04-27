@@ -6,6 +6,7 @@ use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
 use hyper::header::ContentLength;
 use hyper::net::HttpStream;
 
+use hyper::server::Server;
 use hyper::server::Handler as HyperHandler;
 use hyper::server::Request as HyperRequest;
 use hyper::server::Response as HyperResponse;
@@ -58,6 +59,8 @@ pub trait SAppWrapper {
 
 // later will add more fields
 pub struct SApp<T: SModule + Send + 'static, W: SAppWrapper + Send + 'static> {
+    pub address: String,
+    pub port:    u32,
     // for app entry, global middeware
     pub wrapper: Option<W>,
     // for actually use to recognize
@@ -74,16 +77,40 @@ impl<T, W> SApp<T, W>
     {
     pub fn new() -> SApp<T, W> {
         SApp {
+            address: String::new(),
+            port: 0,
             wrapper: None,
             routers: Router::new(),
             _marker: PhantomData
         }
     }
     
+    pub fn run(self) {
+        
+        let listen_addr = self.address.clone() + ":" + &self.port.to_string();
+        let arc_sapp = Arc::new(Box::new(self));
+        
+        let server = Server::http(&listen_addr.parse().unwrap()).unwrap();
+        let _guard = server.handle(move |_| {
+            RequestHandler::new(arc_sapp.clone())
+        });
+    }
+    
     pub fn with_wrapper(&mut self, w: W) -> &mut Self {
         self.wrapper = Some(w);
         self
     }
+    
+    pub fn address(&mut self, address: &str) -> &mut Self {
+        self.address = address.to_owned();
+        self
+    }
+    
+    pub fn port(&mut self, port: u32) -> &mut Self {
+        self.port = port;
+        self
+    }
+    
     
     // add methods of this smodule
     // prefix:  such as '/user'
