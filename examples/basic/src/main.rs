@@ -1,10 +1,10 @@
 
-extern crate sappers;
+extern crate sapper;
 extern crate env_logger;
 #[macro_use]
 extern crate log;
 
-use sappers::{SApp, SAppWrapper, Request, Response, Result};
+use sapper::{SApp, SAppWrapper, Request, Response, Result};
 
 
 
