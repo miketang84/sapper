@@ -27,4 +27,5 @@ pub use sapp::SRouter;
 pub use sapp::RequestHandler;
 pub use sapp::Result;
 pub use sapp::Error;
-
+pub use sapp::Key;
+pub use sapp::Headers;
