@@ -1,5 +1,5 @@
 [package]
-name = "sappers"
+name = "sapper"
 version = "0.1.0"
 authors = ["Mike Tang <miketang84@outlook.com>"]
 license = "MIT"
