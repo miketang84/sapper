@@ -80,7 +80,7 @@ In Sapper, nearly every important thing is a `Type`. They are:
 5. [ ] Other components;
 
 
-## Plugines
+## Plugins
 
 - [QueryParams](https://github.com/sappworks/sapper_query_params)  parsing query string for req
 - [BodyParams](https://github.com/sappworks/sapper_body_params) parsing body url form parameters for req 
