@@ -222,13 +222,23 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                 } 
                 else {
                     // if no body
-                    let path = &path[..];
+                    let pathstr = &path[..];
+                    let pathvec: Vec<&str> = pathstr.split('?').collect();
+                    let path = pathvec[0].to_owned();
+                    let mut query_string = None;
+                    
+                    // if has query_string
+                    if pathvec.len() > 1 {
+                        query_string = Some(pathvec[1].to_owned());
+                    }
+                    
                     // make swiftrs request from hyper request
                     let mut sreq = Request::new(
                         req.method().clone(),
                         req.version().clone(),
                         req.headers().clone(),
-                        path);
+                        path.clone(),
+                        query_string);
                         
                     match self.sapp.routers.handle_method(&mut sreq, &path).unwrap() {
                         Ok(response) => self.response = Some(response),
@@ -281,15 +291,25 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     debug!("Read 0, eof");
                     
                     // TODO: need optimize
-                    let path = &self.path[..];
+                    let pathstr = &self.path[..];
+                    let pathvec: Vec<&str> = pathstr.split('?').collect();
+                    let path = pathvec[0].to_owned();
+                    let mut query_string = None;
+                    
+                    // if has query_string
+                    if pathvec.len() > 1 {
+                        query_string = Some(pathvec[1].to_owned());
+                    }
                     let mut sreq = Request::new(
                         self.method.clone(),
                         self.version.clone(),
                         self.headers.clone(),
-                        path);
+                        path.clone(),
+                        query_string);
+                        
                     sreq.set_raw_body(self.body.clone());
                         
-                    match self.sapp.routers.handle_method(&mut sreq, path).unwrap() {
+                    match self.sapp.routers.handle_method(&mut sreq, &path).unwrap() {
                         Ok(response) => self.response = Some(response),
                         Err(e) => {
                             if e == Error::NotFoundError {

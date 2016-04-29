@@ -29,16 +29,16 @@ pub struct Request {
 } 
 
 impl Request {
-    pub fn new(method: Method, version: HttpVersion, headers: Headers, pathstr: &str) -> Request {
+    pub fn new(method: Method, version: HttpVersion, headers: Headers, path: String, query_string: Option<String>) -> Request {
         // seperate path and query_string
-        let pathvec: Vec<&str> = pathstr.split('?').collect();
-        let path = pathvec[0].to_owned();
-        let mut query_string = None;
+        // let pathvec: Vec<&str> = pathstr.split('?').collect();
+        // let path = pathvec[0].to_owned();
+        // let mut query_string = None;
         
-        // if has query_string
-        if pathvec.len() > 1 {
-            query_string = Some(pathvec[1].to_owned());
-        }
+        // // if has query_string
+        // if pathvec.len() > 1 {
+        //     query_string = Some(pathvec[1].to_owned());
+        // }
         
         Request {
             method: method,
