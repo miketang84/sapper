@@ -1,8 +1,8 @@
-# Sappers
+# Sapper
  
-Sappers, a lightweight web framework, written in Rust.
+Sapper, a lightweight web framework, written in Rust.
 
-Sappers focuses on easy using. But it is in very alpha stage now.
+Sapper focuses on easy using. But it is in very alpha stage now.
 
 
 ## Example
@@ -29,8 +29,8 @@ or any other url to test it.
 ## Features
 
 - Async, based on hyper mio branch;
-- Sappers supplies only basic framework;
-- Sappers only processes small request and response (with small request body, returning small response body) now;
+- Sapper supplies only basic framework;
+- Sapper only processes small request and response (with small request body, returning small response body) now;
 - Three level granularity (global, module, function handler) middleware controller and unified middleware presentation; 
 - Typesafe abstraction, keep the same spirit with hyper;
 - For easy using, will supply some convenient macros to help write business logic;
@@ -90,10 +90,10 @@ In Sapper, nearly every important thing is a `Type`. They are:
 
 Thanks to these projects below:
 
-- [hyper](https://github.com/hyperium/hyper) Sappers is based on hyper mio branch;
-- [iron](https://github.com/iron/iron) Sappers learns many designs from iron;
-- [router](https://github.com/iron/router) Sappers steals router about code from it;
-- [recognizer](https://github.com/conduit-rust/route-recognizer.rs) Sappers uses this route recognizer;
+- [hyper](https://github.com/hyperium/hyper) Sapper is based on hyper mio branch;
+- [iron](https://github.com/iron/iron) Sapper learns many designs from iron;
+- [router](https://github.com/iron/router) Sapper steals router about code from it;
+- [recognizer](https://github.com/conduit-rust/route-recognizer.rs) Sapper uses this route recognizer;
 
 
 ## License
