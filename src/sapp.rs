@@ -11,7 +11,6 @@ use hyper::server::Handler as HyperHandler;
 use hyper::server::Request as HyperRequest;
 use hyper::server::Response as HyperResponse;
 use hyper::method::Method;
-use hyper::header::Headers;
 use hyper::version::HttpVersion;
 
 use std::result::Result as StdResult;
@@ -21,6 +20,9 @@ use std::marker::Reflect;
 use std::clone::Clone;
 use std::marker::PhantomData;
 
+
+pub use typemap::Key;
+pub use hyper::header::Headers;
 pub use request::Request;
 pub use response::Response;
 pub use router::Router;

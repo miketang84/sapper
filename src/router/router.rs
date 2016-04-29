@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::error::Error as StdError;
 use std::fmt;
 use std::any::Any;
+use std::sync::Arc;
+
 
 use request::Request;
 use response::Response;
@@ -9,10 +11,10 @@ use shandler::SHandler;
 use sapp::Result;
 use sapp::Error;
 use sapp::PathParams;
+use sapp::Key;
 use hyper::{status, header};
 use hyper::method::Method;
-use typemap::Key;
-use std::sync::Arc;
+
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
