@@ -28,5 +28,5 @@ pub use sapp::RequestHandler;
 pub use sapp::Result;
 pub use sapp::Error;
 pub use sapp::Key;
-pub use sapp::Headers;
 pub use sapp::header;
+pub use sapp::mime;
