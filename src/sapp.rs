@@ -23,6 +23,7 @@ use std::marker::PhantomData;
 
 pub use typemap::Key;
 pub use hyper::header::Headers;
+pub use hyper::header;
 pub use request::Request;
 pub use response::Response;
 pub use router::Router;
