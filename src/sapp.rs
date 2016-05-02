@@ -42,7 +42,7 @@ pub enum Error {
 pub type Result<T> = ::std::result::Result<T, Error>; 
 
 #[derive(Clone)]
-pub struct PathParams;
+pub struct ReqPathParams;
 
 pub trait SModule {
     fn before(&self, &mut Request) -> Result<()>;

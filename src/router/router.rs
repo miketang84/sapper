@@ -10,7 +10,7 @@ use response::Response;
 use shandler::SHandler;
 use sapp::Result;
 use sapp::Error;
-use sapp::PathParams;
+use sapp::ReqPathParams;
 use sapp::Key;
 use hyper::{status, header};
 use hyper::method::Method;
@@ -18,6 +18,9 @@ use hyper::method::Method;
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
+
+impl Key for ReqPathParams { type Value = Params; }
+
 
 /// `Router` provides an interface for creating complex routes as middleware
 /// for the Iron framework.
@@ -175,7 +178,7 @@ impl Router {
 
     pub fn handle_method(&self, req: &mut Request, path: &str) -> Option<Result<Response>> {
         if let Some(matched) = self.recognize(&req.method(), path) {
-            req.get_ext_mut().insert::<PathParams>(matched.params);
+            req.get_ext_mut().insert::<ReqPathParams>(matched.params);
             Some(matched.handler.handle(req))
         } else { 
             // panic!("router not matched!");
@@ -185,7 +188,7 @@ impl Router {
     }
 }
 
-impl Key for PathParams { type Value = Params; }
+
 
 // impl SHandler for Router {
 //     fn handle(&self, req: &mut Request) -> IronResult<Response> {
