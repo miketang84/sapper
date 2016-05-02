@@ -73,9 +73,9 @@ In Sapper, nearly every important thing is a `Type`. They are:
 
 ## TODO
 
-1. [ ] QueryParams (x-www-form-urlencoded);
-2. [ ] BodyParams (x-www-form-urlencoded);
-3. [ ] BodyJsonParams;
+1. [X] QueryParams (x-www-form-urlencoded);
+2. [X] BodyParams (x-www-form-urlencoded);
+3. [X] BodyJsonParams;
 4. [ ] Some macros;
 5. [ ] Other components;
 
@@ -83,7 +83,7 @@ In Sapper, nearly every important thing is a `Type`. They are:
 ## Plugins
 
 - [QueryParams](https://github.com/sappworks/sapper_query_params)  parsing query string for req
-- [BodyParams](https://github.com/sappworks/sapper_body_params) parsing body url form parameters for req 
+- [BodyParams](https://github.com/sappworks/sapper_body_params) parsing body parameters for req, including url form encoded, json type, json to struct macro. 
 
 
 ## Related Projects
