@@ -97,7 +97,7 @@ impl Request {
     //     &self.full_params
     // }
     
-    pub fn ext(&mut self) -> &TypeMap {
+    pub fn ext(&self) -> &TypeMap {
         &self.ext
     }
     
