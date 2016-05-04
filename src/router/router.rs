@@ -178,7 +178,7 @@ impl Router {
 
     pub fn handle_method(&self, req: &mut Request, path: &str) -> Option<Result<Response>> {
         if let Some(matched) = self.recognize(&req.method(), path) {
-            req.get_ext_mut().insert::<ReqPathParams>(matched.params);
+            req.ext_mut().insert::<ReqPathParams>(matched.params);
             Some(matched.handler.handle(req))
         } else { 
             // panic!("router not matched!");

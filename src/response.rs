@@ -37,12 +37,15 @@ impl Response {
         &mut self.headers
     }
     
-    pub fn write_body(&mut self, body: String) {
-        self.body = Some(body)
-    }
     
     pub fn body(&self) -> &Option<String>{
         &self.body
     }
+    
+    pub fn write_body(&mut self, body: String) {
+        self.body = Some(body)
+    }
+    
+    
 }
 

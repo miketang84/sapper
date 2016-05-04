@@ -97,11 +97,11 @@ impl Request {
     //     &self.full_params
     // }
     
-    pub fn get_ext(&mut self) -> &TypeMap {
+    pub fn ext(&mut self) -> &TypeMap {
         &self.ext
     }
     
-    pub fn get_ext_mut(&mut self) -> &mut TypeMap {
+    pub fn ext_mut(&mut self) -> &mut TypeMap {
         &mut self.ext
     }
 }
