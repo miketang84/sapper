@@ -82,9 +82,10 @@ In Sapper, nearly every important thing is a `Type`. They are:
 
 ## Plugins
 
-- [QueryParams](https://github.com/sappworks/sapper_query_params)  parsing query string for req
-- [BodyParams](https://github.com/sappworks/sapper_body_params) parsing body parameters for req, including url form encoded, json type, json to struct macro. 
-
+- [ReqQueryParams](https://github.com/sappworks/sapper_query_params)  parsing query string for req
+- [ReqBodyParams](https://github.com/sappworks/sapper_body_params) parsing body parameters for req, including url form encoded, json type, json to struct macro. 
+- [SAppCookie](https://github.com/sappworks/sapper_cookie) a cookie plugin, and else supply a helper set_cookie function
+- [ReqBasicLogger](https://github.com/sappworks/sapper_request_basic_logger) record request and caculate its time
 
 ## Related Projects
 
