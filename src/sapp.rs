@@ -343,6 +343,13 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
         match self.response {
             Some(ref response) => {
                 if let &Some(ref body) = response.body() {
+                    // update top level headers to low level headers
+                    for header in response.headers().iter() {
+                        res.headers_mut()
+                            .set_raw(header.name().to_owned(), 
+                                vec![header.value_string().as_bytes().to_vec()]);
+                    }
+                    
                     // here, set hyper response status code, and headers
                     res.headers_mut().set(ContentLength(body.len() as u64));
                 }
