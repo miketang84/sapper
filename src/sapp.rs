@@ -404,11 +404,13 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                             match simple_file_get(path) {
                                 Ok(avec) => {
                                     println!("serve file: {}", path);
+                                    let body_len = avec.len() as u64;
                                     self.static_file = Some(avec);
                                     // TODO: need jude file mime type according to path
                                     // and set the header
                                     let mt_str = mt.mime_for_path(Path::new(path));
-                                    res.headers_mut().set_raw("Content-Type", vec![mt_str.as_bytes().to_vec()])
+                                    res.headers_mut().set_raw("Content-Type", vec![mt_str.as_bytes().to_vec()]);
+                                    res.headers_mut().set(ContentLength(body_len));
                                 },
                                 Err(_) => {
                                     println!("NotFound: {}", path);
