@@ -33,12 +33,14 @@ pub use shandler::SHandler;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    BeforeError,
-    HandlerError,
-    AfterError,
-    RouterConfigError,
-    RedirectError,
-    NotFoundError,
+    NotFound,
+    ShouldRedirect,
+    InvalidConfig,
+    InvalidRouterConfig,
+    Prompt(String),
+    Warning(String),
+    Fatal(String),
+    Custom(String),
 }
 
 pub type Result<T> = ::std::result::Result<T, Error>; 
@@ -180,7 +182,7 @@ pub struct RequestHandler<
     pub body: String,
     pub has_body: bool,
     // response deliver
-    pub response: Option<Response>,
+    pub response: Result<Response>,
 }
 
 impl<T, W> RequestHandler<T, W> 
@@ -197,7 +199,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
             buf: vec![0; 2048],
             body: String::new(),
             has_body: false,
-            response: None
+            response: Err(Error::NotFound)
         }
     }
     
@@ -241,15 +243,17 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                         req.headers().clone(),
                         path.clone(),
                         query_string);
+
+                    self.response = self.sapp.routers.handle_method(&mut sreq, &path).unwrap();
                         
-                    match self.sapp.routers.handle_method(&mut sreq, &path).unwrap() {
-                        Ok(response) => self.response = Some(response),
-                        Err(e) => {
-                            if e == Error::NotFoundError {
-                                self.response = None
-                            }
-                        }
-                    }
+                    // match self.sapp.routers.handle_method(&mut sreq, &path).unwrap() {
+                    //     Ok(response) => self.response = Some(response),
+                    //     Err(e) => {
+                    //         if e == Error::NotFoundError {
+                    //             self.response = None
+                    //         }
+                    //     }
+                    // }
                     
                     Next::write()
                 } 
@@ -309,16 +313,19 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                         path.clone(),
                         query_string);
                         
+                    // TODO: optimize this memory copy
                     sreq.set_raw_body(self.body.clone());
                         
-                    match self.sapp.routers.handle_method(&mut sreq, &path).unwrap() {
-                        Ok(response) => self.response = Some(response),
-                        Err(e) => {
-                            if e == Error::NotFoundError {
-                                self.response = None
-                            }
-                        }
-                    }
+                    self.response = self.sapp.routers.handle_method(&mut sreq, &path).unwrap();
+                    
+                    // match self.sapp.routers.handle_method(&mut sreq, &path).unwrap() {
+                    //     Ok(response) => self.response = Some(response),
+                    //     Err(e) => {
+                    //         if e == Error::NotFoundError {
+                    //             self.response = None
+                    //         }
+                    //     }
+                    // }
                     // 
                     return Next::write()
                 },
@@ -341,7 +348,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
 
     fn on_response(&mut self, res: &mut HyperResponse) -> Next {
         match self.response {
-            Some(ref response) => {
+            Ok(ref response) => {
                 if let &Some(ref body) = response.body() {
                     // update top level headers to low level headers
                     for header in response.headers().iter() {
@@ -355,7 +362,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                 }
                 Next::write()
             },
-            None => {
+            Err(_) => {
                 // Inner Error
                 // end
                 res.set_status(StatusCode::NotFound);
@@ -369,14 +376,14 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
 
     fn on_response_writable(&mut self, transport: &mut Encoder<HttpStream>) -> Next {
         match self.response {
-            Some(ref response) => {
+            Ok(ref response) => {
                 if let &Some(ref body) = response.body() {
                     // write response.body.unwrap() to transport
                     transport.write(body.as_bytes()).unwrap();
                 }
                 Next::end()
             },
-            None => {
+            Err(_) => {
                 transport.write("404 Not Found".as_bytes()).unwrap();
                 // end
                 Next::end()

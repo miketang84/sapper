@@ -183,7 +183,7 @@ impl Router {
         } else { 
             // panic!("router not matched!");
             // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
-            Some(Err(Error::NotFoundError)) 
+            Some(Err(Error::NotFound)) 
         }
     }
 }
