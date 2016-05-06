@@ -9,6 +9,7 @@ extern crate log;
 extern crate hyper;
 extern crate route_recognizer as recognizer;
 extern crate typemap;
+extern crate conduit_mime_types as mime_types;
 
 mod request;
 mod response;

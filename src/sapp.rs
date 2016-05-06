@@ -2,6 +2,7 @@
 use std::str;
 use std::io::{self, Read, Write};
 use std::fs::File;
+use std::path::Path;
 
 use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
 use hyper::header::{ContentLength, ContentType};
@@ -21,6 +22,8 @@ use std::marker::Reflect;
 use std::clone::Clone;
 use std::marker::PhantomData;
 
+
+use mime_types::Types as MimeTypes;
 
 pub use typemap::Key;
 pub use hyper::header::Headers;
@@ -371,9 +374,15 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
     }
 
     fn on_response(&mut self, res: &mut HyperResponse) -> Next {
+        
+        let mt = MimeTypes::new().unwrap();
+        
         match self.response {
             Ok(ref response) => {
                 if let &Some(ref body) = response.body() {
+                    // default set content type as html
+                    res.headers_mut().set(ContentType::html());
+                    
                     // update top level headers to low level headers
                     for header in response.headers().iter() {
                         res.headers_mut()
@@ -394,18 +403,22 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                         if self.sapp.static_service {
                             match simple_file_get(path) {
                                 Ok(avec) => {
+                                    println!("serve file: {}", path);
                                     self.static_file = Some(avec);
                                     // TODO: need jude file mime type according to path
                                     // and set the header
-                                    // res.headers_mut().set(ContentType("404 Not Found".len() as u64));
+                                    let mt_str = mt.mime_for_path(Path::new(path));
+                                    res.headers_mut().set_raw("Content-Type", vec![mt_str.as_bytes().to_vec()])
                                 },
                                 Err(_) => {
+                                    println!("NotFound: {}", path);
                                     res.set_status(StatusCode::NotFound);
                                     res.headers_mut().set(ContentLength("404 Not Found".len() as u64));
                                 }
                             }
                         }
                         else {
+                            println!("NotFound: {}", path);
                             res.set_status(StatusCode::NotFound);
                             res.headers_mut().set(ContentLength("404 Not Found".len() as u64));
                         }
