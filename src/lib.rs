@@ -3,6 +3,7 @@
 #![allow(unused_variables)]
 #![allow(dead_code)]
 #![feature(reflect_marker)]
+#![feature(question_mark)]
 #[macro_use]
 extern crate log;
 extern crate hyper;

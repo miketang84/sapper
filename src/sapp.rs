@@ -31,12 +31,12 @@ pub use router::Router;
 pub use srouter::SRouter;
 pub use shandler::SHandler;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Error {
     NotFound,
-    ShouldRedirect,
     InvalidConfig,
     InvalidRouterConfig,
+    ShouldRedirect(String),
     Prompt(String),
     Warning(String),
     Fatal(String),
@@ -148,12 +148,11 @@ impl<T, W> SApp<T, W>
                 let sm = sm.clone();
                 let wrapper = self.wrapper.clone().unwrap();
                 self.routers.route(method, glob, Arc::new(Box::new(move |req: &mut Request| -> Result<Response> {
-                    wrapper.before(req).unwrap();
-                    sm.before(req).unwrap();
-                    let res: Result<Response> = handler.handle(req);
-                    let mut response = res.unwrap();
-                    sm.after(req, &mut response).unwrap();
-                    wrapper.after(req, &mut response).unwrap();
+                    wrapper.before(req)?;
+                    sm.before(req)?;
+                    let mut response: Response = handler.handle(req)?;
+                    sm.after(req, &mut response)?;
+                    wrapper.after(req, &mut response)?;
                     Ok(response)
                 })));
             }
@@ -362,11 +361,26 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                 }
                 Next::write()
             },
-            Err(_) => {
+            Err(ref e) => {
                 // Inner Error
                 // end
-                res.set_status(StatusCode::NotFound);
-                res.headers_mut().set(ContentLength("404 Not Found".len() as u64));
+                match e {
+                    &Error::NotFound => {
+                        res.set_status(StatusCode::NotFound);
+                        res.headers_mut().set(ContentLength("404 Not Found".len() as u64));
+                    },
+                    &Error::Fatal(ref astr) => {
+                        println!("fatal error: {}", astr);
+                        res.set_status(StatusCode::InternalServerError);
+                        return Next::end();
+                    },
+                    _ => {
+                        
+                    }
+                    
+                }
+                
+                
                 Next::write()
             }
         }
@@ -383,8 +397,17 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                 }
                 Next::end()
             },
-            Err(_) => {
-                transport.write("404 Not Found".as_bytes()).unwrap();
+            Err(ref e) => {
+                match e {
+                    &Error::NotFound => {
+                        transport.write("404 Not Found".as_bytes()).unwrap();
+                    },
+                    _ => {
+                        
+                    }
+                }
+                
+                
                 // end
                 Next::end()
             }
