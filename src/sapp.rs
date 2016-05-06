@@ -1,6 +1,7 @@
 
 use std::str;
 use std::io::{self, Read, Write};
+use std::fs::File;
 
 use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
 use hyper::header::{ContentLength, ContentType};
@@ -33,9 +34,10 @@ pub use shandler::SHandler;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Error {
-    NotFound,
+    NotFound(String),
     InvalidConfig,
     InvalidRouterConfig,
+    FileNotExist,
     ShouldRedirect(String),
     Prompt(String),
     Warning(String),
@@ -74,6 +76,8 @@ pub struct SApp<T: SModule + Send + 'static, W: SAppWrapper + Send + 'static> {
     pub wrapper: Option<W>,
     // for actually use to recognize
     pub routers: Router,
+    // do simple static file service?
+    pub static_service: bool,
     // marker for type T
     pub _marker: PhantomData<T>,
 }
@@ -90,6 +94,7 @@ impl<T, W> SApp<T, W>
             port: 0,
             wrapper: None,
             routers: Router::new(),
+            static_service: true,
             _marker: PhantomData
         }
     }
@@ -117,6 +122,11 @@ impl<T, W> SApp<T, W>
     
     pub fn port(&mut self, port: u32) -> &mut Self {
         self.port = port;
+        self
+    }
+    
+    pub fn static_service(&mut self, open: bool) -> &mut Self {
+        self.static_service = open;
         self
     }
     
@@ -165,6 +175,19 @@ impl<T, W> SApp<T, W>
 }
 
 
+fn simple_file_get(path: &str) -> Result<Vec<u8>> {
+    let container = "static/".to_owned();
+    match File::open(container + path) {
+        Ok(ref mut file) => {
+            let mut s: Vec<u8> = vec![];
+            file.read_to_end(&mut s).unwrap_or(0);
+            Ok(s)
+        },
+        Err(_) => Err(Error::FileNotExist)
+    }
+}
+
+
 pub struct RequestHandler<
         T: SModule + Send + Sync + Reflect + Clone + 'static, 
         W: SAppWrapper + Send + Sync + Reflect + Clone + 'static> {
@@ -182,6 +205,7 @@ pub struct RequestHandler<
     pub has_body: bool,
     // response deliver
     pub response: Result<Response>,
+    pub static_file: Option<Vec<u8>>,
 }
 
 impl<T, W> RequestHandler<T, W> 
@@ -198,7 +222,8 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
             buf: vec![0; 2048],
             body: String::new(),
             has_body: false,
-            response: Err(Error::NotFound)
+            response: Err(Error::NotFound("/".to_owned())),
+            static_file: None,
         }
     }
     
@@ -365,9 +390,25 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                 // Inner Error
                 // end
                 match e {
-                    &Error::NotFound => {
-                        res.set_status(StatusCode::NotFound);
-                        res.headers_mut().set(ContentLength("404 Not Found".len() as u64));
+                    &Error::NotFound(ref path) => {
+                        if self.sapp.static_service {
+                            match simple_file_get(path) {
+                                Ok(avec) => {
+                                    self.static_file = Some(avec);
+                                    // TODO: need jude file mime type according to path
+                                    // and set the header
+                                    // res.headers_mut().set(ContentType("404 Not Found".len() as u64));
+                                },
+                                Err(_) => {
+                                    res.set_status(StatusCode::NotFound);
+                                    res.headers_mut().set(ContentLength("404 Not Found".len() as u64));
+                                }
+                            }
+                        }
+                        else {
+                            res.set_status(StatusCode::NotFound);
+                            res.headers_mut().set(ContentLength("404 Not Found".len() as u64));
+                        }
                     },
                     &Error::Fatal(ref astr) => {
                         println!("fatal error: {}", astr);
@@ -393,14 +434,28 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
             Ok(ref response) => {
                 if let &Some(ref body) = response.body() {
                     // write response.body.unwrap() to transport
-                    transport.write(body.as_bytes()).unwrap();
+                    transport.write(body).unwrap();
                 }
                 Next::end()
             },
             Err(ref e) => {
                 match e {
-                    &Error::NotFound => {
-                        transport.write("404 Not Found".as_bytes()).unwrap();
+                    &Error::NotFound(ref path) => {
+                        if self.sapp.static_service {
+                            match self.static_file {
+                                Some(ref avec) => {
+                                    transport.write(avec).unwrap();
+                                },
+                                None => {
+                                    transport.write("404 Not Found".as_bytes()).unwrap();
+                                }
+                            }
+                        }
+                        else {
+                            transport.write("404 Not Found".as_bytes()).unwrap();
+                        }
+                        
+                        
                     },
                     _ => {
                         

@@ -8,7 +8,8 @@ use hyper::header::Headers;
 pub struct Response {
     status: StatusCode,
     headers: Headers,
-    body: Option<String>,
+    // body: Option<String>,
+    body: Option<Vec<u8>>,
 }
 
 
@@ -38,14 +39,17 @@ impl Response {
     }
     
     
-    pub fn body(&self) -> &Option<String>{
+    pub fn body(&self) -> &Option<Vec<u8>>{
         &self.body
     }
     
     pub fn write_body(&mut self, body: String) {
-        self.body = Some(body)
+        self.body = Some(body.as_bytes().to_vec())
     }
     
+    pub fn write_raw_body(&mut self, body: Vec<u8>) {
+        self.body = Some(body)
+    }
     
 }
 
