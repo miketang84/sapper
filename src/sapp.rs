@@ -3,7 +3,6 @@ use std::str;
 use std::io::{self, Read, Write};
 use std::fs::File;
 use std::path::Path;
-use time;
 
 use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
 use hyper::header::{ContentLength, ContentType};
@@ -246,8 +245,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
  {
     fn on_request(&mut self, req: HyperRequest) -> Next {
         
-        // println!("on_request 1:{}", time::precise_time_ns());
-        
         match *req.uri() {
             RequestUri::AbsolutePath(ref path) =>  {
                 // if has_body
@@ -259,7 +256,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     self.version = req.version().clone();
                     self.headers = req.headers().clone();
                     self.has_body = true;
-                    // println!("on_request 2:{}", time::precise_time_ns());
                     
                     Next::read_and_write()
                 } 
@@ -294,7 +290,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     //     }
                     // }
                     
-                    // println!("on_request 3:{}", time::precise_time_ns());
                     Next::write()
                 } 
                 
@@ -333,7 +328,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
         }
     }
     fn on_request_readable(&mut self, transport: &mut Decoder<HttpStream>) -> Next {
-        // println!("on_request_readable 1:{}", time::precise_time_ns());
         
         if self.has_body {
             match transport.read(&mut self.buf) {
@@ -371,7 +365,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     //     }
                     // }
                     // 
-                    // println!("on_request_readable 2:{}", time::precise_time_ns());
                     
                     return Next::write()
                 },
@@ -393,9 +386,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
     }
 
     fn on_response(&mut self, res: &mut HyperResponse) -> Next {
-        // println!("on_response 1:{}", time::precise_time_ns());
-        
-        
         
         match self.response {
             Ok(ref response) => {
@@ -413,8 +403,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     // here, set hyper response status code, and headers
                     res.headers_mut().set(ContentLength(body.len() as u64));
                 }
-                // println!("on_response 2:{}", time::precise_time_ns());
-                
+
                 Next::write()
             },
             Err(ref e) => {
@@ -460,7 +449,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     
                 }
                 
-                // println!("on_response 3:{}", time::precise_time_ns());
                 Next::write()
             }
         }
@@ -472,7 +460,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
     }
 
     fn on_response_writable(&mut self, transport: &mut Encoder<HttpStream>) -> Next {
-        // println!("on_response_writable 1:{}", time::precise_time_ns());
         
         match self.response {
             Ok(ref response) => {
@@ -480,7 +467,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     // write response.body.unwrap() to transport
                     transport.write(body).unwrap();
                 }
-                // println!("on_response_writable 2:{}", time::precise_time_ns());
+
                 Next::end()
             },
             Err(ref e) => {
@@ -507,7 +494,6 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     }
                 }
                 
-                // println!("on_response_writable 3:{}", time::precise_time_ns());
                 // end
                 Next::end()
             }
