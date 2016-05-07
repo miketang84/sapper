@@ -25,6 +25,26 @@ or
 
 or any other url to test it.
 
+## Basic Benchmark
+
+ThinkPad T410s  
+Intel(R) Core(TM) i5 CPU M 560 @ 2.67GHz   
+Single Thread (Using only one core)  
+Ubuntu 14.04 x86  
+
+about 3.5w qps.
+
+```
+mike@spirit:~/GIT/wrk$ ./wrk -t2 -c400 -d30s http://127.0.0.1:1337
+Running 30s test @ http://127.0.0.1:1337
+  2 threads and 400 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    10.98ms  427.68us  19.41ms   94.67%
+    Req/Sec    18.29k   589.28    19.61k    82.17%
+  1092800 requests in 30.03s, 132.36MB read
+Requests/sec:  36393.03
+Transfer/sec:      4.41MB
+```
 
 ## Features
 
