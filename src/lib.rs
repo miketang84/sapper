@@ -6,10 +6,13 @@
 #![feature(question_mark)]
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate lazy_static;
 extern crate hyper;
 extern crate route_recognizer as recognizer;
 extern crate typemap;
 extern crate conduit_mime_types as mime_types;
+extern crate time;
 
 mod request;
 mod response;

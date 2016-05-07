@@ -3,6 +3,7 @@ use std::str;
 use std::io::{self, Read, Write};
 use std::fs::File;
 use std::path::Path;
+use time;
 
 use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
 use hyper::header::{ContentLength, ContentType};
@@ -178,6 +179,12 @@ impl<T, W> SApp<T, W>
 }
 
 
+// this is very expensive in time
+// should make it as global 
+lazy_static! {
+    static ref MTYPES: MimeTypes = { MimeTypes::new().unwrap() };
+}
+
 fn simple_file_get(path: &str) -> Result<Vec<u8>> {
     let container = "static/".to_owned();
     match File::open(container + path) {
@@ -238,6 +245,9 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
         W: SAppWrapper + Send + Sync + Reflect + Clone + 'static
  {
     fn on_request(&mut self, req: HyperRequest) -> Next {
+        
+        // println!("on_request 1:{}", time::precise_time_ns());
+        
         match *req.uri() {
             RequestUri::AbsolutePath(ref path) =>  {
                 // if has_body
@@ -249,6 +259,8 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     self.version = req.version().clone();
                     self.headers = req.headers().clone();
                     self.has_body = true;
+                    // println!("on_request 2:{}", time::precise_time_ns());
+                    
                     Next::read_and_write()
                 } 
                 else {
@@ -282,6 +294,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     //     }
                     // }
                     
+                    // println!("on_request 3:{}", time::precise_time_ns());
                     Next::write()
                 } 
                 
@@ -313,11 +326,15 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
             
                 // Next::read_and_write()
                 // Next::write()
+                
+                
             },
             _ => Next::write()
         }
     }
     fn on_request_readable(&mut self, transport: &mut Decoder<HttpStream>) -> Next {
+        // println!("on_request_readable 1:{}", time::precise_time_ns());
+        
         if self.has_body {
             match transport.read(&mut self.buf) {
                 Ok(0) => {
@@ -354,6 +371,8 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     //     }
                     // }
                     // 
+                    // println!("on_request_readable 2:{}", time::precise_time_ns());
+                    
                     return Next::write()
                 },
                 Ok(n) => {
@@ -374,8 +393,9 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
     }
 
     fn on_response(&mut self, res: &mut HyperResponse) -> Next {
+        // println!("on_response 1:{}", time::precise_time_ns());
         
-        let mt = MimeTypes::new().unwrap();
+        
         
         match self.response {
             Ok(ref response) => {
@@ -393,6 +413,8 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     // here, set hyper response status code, and headers
                     res.headers_mut().set(ContentLength(body.len() as u64));
                 }
+                // println!("on_response 2:{}", time::precise_time_ns());
+                
                 Next::write()
             },
             Err(ref e) => {
@@ -400,6 +422,8 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                 // end
                 match e {
                     &Error::NotFound(ref path) => {
+
+                        
                         if self.sapp.static_service {
                             match simple_file_get(path) {
                                 Ok(avec) => {
@@ -408,7 +432,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                                     self.static_file = Some(avec);
                                     // TODO: need jude file mime type according to path
                                     // and set the header
-                                    let mt_str = mt.mime_for_path(Path::new(path));
+                                    let mt_str = MTYPES.mime_for_path(Path::new(path));
                                     res.headers_mut().set_raw("Content-Type", vec![mt_str.as_bytes().to_vec()]);
                                     res.headers_mut().set(ContentLength(body_len));
                                 },
@@ -436,21 +460,27 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     
                 }
                 
-                
+                // println!("on_response 3:{}", time::precise_time_ns());
                 Next::write()
             }
         }
         
         
+        
+        
+        
     }
 
     fn on_response_writable(&mut self, transport: &mut Encoder<HttpStream>) -> Next {
+        // println!("on_response_writable 1:{}", time::precise_time_ns());
+        
         match self.response {
             Ok(ref response) => {
                 if let &Some(ref body) = response.body() {
                     // write response.body.unwrap() to transport
                     transport.write(body).unwrap();
                 }
+                // println!("on_response_writable 2:{}", time::precise_time_ns());
                 Next::end()
             },
             Err(ref e) => {
@@ -477,11 +507,14 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     }
                 }
                 
-                
+                // println!("on_response_writable 3:{}", time::precise_time_ns());
                 // end
                 Next::end()
             }
         }
+        
+        
+        
        
     }
 }
