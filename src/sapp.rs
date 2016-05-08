@@ -192,6 +192,7 @@ fn simple_file_get(path: &str) -> Result<(Vec<u8>, String)> {
     else {
         new_path = "static/".to_owned() + path;
     }
+    println!("file path: {}", new_path);
     match File::open(&new_path) {
         Ok(ref mut file) => {
             let mut s: Vec<u8> = vec![];
