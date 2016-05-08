@@ -185,7 +185,13 @@ lazy_static! {
 }
 
 fn simple_file_get(path: &str) -> Result<(Vec<u8>, String)> {
-    let new_path = "static/".to_owned() + path;
+    let new_path;
+    if &path[(path.len()-1)..] == "/" {
+        new_path = "static/".to_owned() + path + "index.html";
+    }
+    else {
+        new_path = "static/".to_owned() + path;
+    }
     match File::open(&new_path) {
         Ok(ref mut file) => {
             let mut s: Vec<u8> = vec![];
