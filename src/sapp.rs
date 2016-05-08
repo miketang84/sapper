@@ -184,13 +184,16 @@ lazy_static! {
     static ref MTYPES: MimeTypes = { MimeTypes::new().unwrap() };
 }
 
-fn simple_file_get(path: &str) -> Result<Vec<u8>> {
-    let container = "static/".to_owned();
-    match File::open(container + path) {
+fn simple_file_get(path: &str) -> Result<(Vec<u8>, String)> {
+    let new_path = "static/".to_owned() + path;
+    match File::open(&new_path) {
         Ok(ref mut file) => {
             let mut s: Vec<u8> = vec![];
             file.read_to_end(&mut s).unwrap_or(0);
-            Ok(s)
+            
+            let mt_str = MTYPES.mime_for_path(Path::new(&new_path));
+            
+            Ok((s, mt_str.to_owned()))
         },
         Err(_) => Err(Error::FileNotExist)
     }
@@ -412,16 +415,15 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                 match e {
                     &Error::NotFound(ref path) => {
 
-                        
                         if self.sapp.static_service {
                             match simple_file_get(path) {
-                                Ok(avec) => {
+                                Ok((avec, mt_str)) => {
                                     println!("serve file: {}", path);
                                     let body_len = avec.len() as u64;
                                     self.static_file = Some(avec);
                                     // TODO: need jude file mime type according to path
                                     // and set the header
-                                    let mt_str = MTYPES.mime_for_path(Path::new(path));
+                                    // let mt_str = MTYPES.mime_for_path(Path::new(path));
                                     res.headers_mut().set_raw("Content-Type", vec![mt_str.as_bytes().to_vec()]);
                                     res.headers_mut().set(ContentLength(body_len));
                                 },
