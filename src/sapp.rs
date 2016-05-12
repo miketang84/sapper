@@ -222,6 +222,7 @@ pub struct RequestHandler<
     pub buf: Vec<u8>,
     pub body: String,
     pub has_body: bool,
+    pub write_pos: usize,
     // response deliver
     pub response: Result<Response>,
     pub static_file: Option<Vec<u8>>,
@@ -241,6 +242,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
             buf: vec![0; 2048],
             body: String::new(),
             has_body: false,
+            write_pos: 0,
             response: Err(Error::NotFound("/".to_owned())),
             static_file: None,
         }
@@ -473,11 +475,31 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
         match self.response {
             Ok(ref response) => {
                 if let &Some(ref body) = response.body() {
+                    // match transport.write(body) 
                     // write response.body.unwrap() to transport
-                    transport.write(body).unwrap();
+                    match transport.write(&body[self.write_pos..]) {
+                        Ok(0) => {
+                            println!("why write zero byte?");
+                            Next::end()
+                        },
+                        Ok(n) => {
+                            self.write_pos += n;
+                            Next::write()
+                        },
+                        Err(e) => match e.kind() {
+                            io::ErrorKind::WouldBlock => Next::write(),
+                            _ => {
+                                println!("write error {:?}", e);
+                                Next::end()
+                            }
+                        }
+                    }
+                }
+                else {
+                    Next::end()
                 }
 
-                Next::end()
+                
             },
             Err(ref e) => {
                 match e {
@@ -485,31 +507,43 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                         if self.sapp.static_service {
                             match self.static_file {
                                 Some(ref avec) => {
-                                    transport.write(avec).unwrap();
+                                    // transport.write(avec).unwrap();
+                                    match transport.write(&avec[self.write_pos..]) {
+                                        Ok(0) => {
+                                            println!("why write zero byte?");
+                                            Next::end()
+                                        },
+                                        Ok(n) => {
+                                            self.write_pos += n;
+                                            Next::write()
+                                        },
+                                        Err(e) => match e.kind() {
+                                            io::ErrorKind::WouldBlock => Next::write(),
+                                            _ => {
+                                                println!("write error {:?}", e);
+                                                Next::end()
+                                            }
+                                        }
+                                    }
                                 },
                                 None => {
                                     transport.write("404 Not Found".as_bytes()).unwrap();
+                                    // end
+                                    Next::end()
                                 }
                             }
                         }
                         else {
                             transport.write("404 Not Found".as_bytes()).unwrap();
+                            Next::end()
                         }
-                        
-                        
                     },
                     _ => {
-                        
+                        Next::end()
                     }
                 }
-                
-                // end
-                Next::end()
             }
         }
-        
-        
-        
        
     }
 }
