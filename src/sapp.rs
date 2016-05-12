@@ -411,7 +411,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     }
                     
                     // here, set hyper response status code, and headers
-                    // res.headers_mut().set(ContentLength(body.len() as u64));
+                    res.headers_mut().set(ContentLength(body.len() as u64));
                 }
 
                 Next::write()
@@ -432,7 +432,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                                     // and set the header
                                     // let mt_str = MTYPES.mime_for_path(Path::new(path));
                                     res.headers_mut().set_raw("Content-Type", vec![mt_str.as_bytes().to_vec()]);
-                                    // res.headers_mut().set(ContentLength(body_len));
+                                    res.headers_mut().set(ContentLength(body_len));
                                 },
                                 Err(_) => {
                                     println!("NotFound: {}", path);
