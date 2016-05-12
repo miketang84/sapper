@@ -88,8 +88,8 @@ pub struct SApp<T: SModule + Send + 'static, W: SAppWrapper + Send + 'static> {
 
 
 impl<T, W> SApp<T, W>
-    where   T: SModule + Send + Sync + Reflect + Clone + 'static, 
-            W: SAppWrapper + Send + Sync + Reflect + Clone + 'static 
+    where   T: SModule + Send + Sync + Reflect + Clone, 
+            W: SAppWrapper + Send + Sync + Reflect + Clone 
     {
     pub fn new() -> SApp<T, W> {
         SApp {
