@@ -479,7 +479,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                     // write response.body.unwrap() to transport
                     match transport.write(&body[self.write_pos..]) {
                         Ok(0) => {
-                            println!("why write zero byte?");
+                            // println!("why write zero byte?");
                             Next::end()
                         },
                         Ok(n) => {
@@ -510,7 +510,7 @@ where   T: SModule + Send + Sync + Reflect + Clone + 'static,
                                     // transport.write(avec).unwrap();
                                     match transport.write(&avec[self.write_pos..]) {
                                         Ok(0) => {
-                                            println!("why write zero byte?");
+                                            // println!("why write zero byte?");
                                             Next::end()
                                         },
                                         Ok(n) => {
