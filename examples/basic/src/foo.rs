@@ -58,10 +58,10 @@ impl SModule for Foo {
         // XXX: here could not write as this, should record first, not parse it now
         
         
-        router.get("/", Foo::index);
-        router.get("/123", Foo::index);
-        router.get("/test", Foo::test);
-        router.post("/test", Foo::test_post);
+        router.get("/foo", Foo::index);
+        router.get("/foo/", Foo::index);
+        router.get("/foo/test", Foo::test);
+        router.post("/foo/test", Foo::test_post);
         
         Ok(())
         
