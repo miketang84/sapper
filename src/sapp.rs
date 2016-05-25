@@ -88,7 +88,7 @@ pub struct SApp<W, P>
     pub static_service: bool,
     // marker for type T
     // pub _marker: PhantomData<T>,
-    pub ext_map: TypeMap
+    pub ext_map: Arc<Box<TypeMap>>
 }
 
 
@@ -98,7 +98,7 @@ impl<W, P> SApp<W, P>
             P: Key,
             P::Value: Send + Sync 
     {
-    pub fn new() -> SApp<W> {
+    pub fn new() -> SApp<W, P> {
         SApp {
             address: String::new(),
             port: 0,
@@ -106,7 +106,7 @@ impl<W, P> SApp<W, P>
             routers: Router::new(),
             static_service: true,
             // _marker: PhantomData
-            ext_map: TypeMap::new()
+            ext_map: Arc::new(Box::new(TypeMap::new()))
         }
     }
     
@@ -308,7 +308,7 @@ where
                     
                     // make swiftrs request from hyper request
                     let mut sreq = Request::new(
-                        self.sapp.clone(),
+                        self.sapp.ext_map.clone(),
                         req.method().clone(),
                         req.version().clone(),
                         req.headers().clone(),
@@ -381,7 +381,7 @@ where
                         query_string = Some(pathvec[1].to_owned());
                     }
                     let mut sreq = Request::new(
-                        self.sapp.clone(),
+                        self.sapp.ext_map.clone(),
                         self.method.clone(),
                         self.version.clone(),
                         self.headers.clone(),

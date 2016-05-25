@@ -4,21 +4,11 @@ use hyper::method::Method;
 use hyper::header::Headers;
 use hyper::version::HttpVersion;
 use std::collections::HashMap;
-use std::marker::Reflect;
 use std::sync::Arc;
 
 use typemap::TypeMap;
-use typemap::Key;
-use sapp::SAppWrapper;
-use sapp::SApp;
 
-
-pub struct Request<W, P>
-        where
-            W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
-            P: Key,
-            P::Value: Send + Sync
-         {
+pub struct Request {
     method: Method,
     version: HttpVersion,
     headers: Headers,
@@ -37,17 +27,12 @@ pub struct Request<W, P>
     // full_params: Option<HashMap<String, String>>,
     // ext key value pair
     ext: TypeMap,
-    sapp: Arc<Box<SApp<W, P>>>
+    global_ext: Arc<Box<TypeMap>>
     
 } 
 
-impl<W, P> Request<W, P>
-        where
-            W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
-            P: Key,
-            P::Value: Send + Sync
-        {
-    pub fn new(sapp: Arc<Box<SApp<W, P>>>, method: Method, version: HttpVersion, headers: Headers, path: String, query_string: Option<String>) -> Request<W, P> {
+impl Request {
+    pub fn new(global_ext: Arc<Box<TypeMap>>, method: Method, version: HttpVersion, headers: Headers, path: String, query_string: Option<String>) -> Request {
         // seperate path and query_string
         // let pathvec: Vec<&str> = pathstr.split('?').collect();
         // let path = pathvec[0].to_owned();
@@ -59,7 +44,6 @@ impl<W, P> Request<W, P>
         // }
         
         Request {
-            sapp: sapp,
             method: method,
             version: version,
             headers: headers,
@@ -67,10 +51,8 @@ impl<W, P> Request<W, P>
             path: path,
             query_string: query_string,
             raw_body: None,
-            // queries: None,
-            // body_params: None,
-            // full_params: None,
-            ext: TypeMap::new()
+            ext: TypeMap::new(),
+            global_ext: global_ext,
         }
 
     }
@@ -124,13 +106,12 @@ impl<W, P> Request<W, P>
         &mut self.ext
     }
     
-    pub fn get_ext<P: Key>(&self) -> Option<P::Value> {
-        self.ext.get::<P>()
+    pub fn global_ext(&self) -> &TypeMap {
+        &self.global_ext
     }
     
-    pub fn get_global<P: Key>(&self) -> Option<P::Value> {
-        self.sapp.ext_map.get::<P>()
+    pub fn global_ext_mut(&mut self) -> &mut TypeMap {
+        &mut self.global_ext
     }
-    
 }
 
