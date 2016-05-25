@@ -4,9 +4,21 @@ use hyper::method::Method;
 use hyper::header::Headers;
 use hyper::version::HttpVersion;
 use std::collections::HashMap;
-use typemap::TypeMap;
+use std::marker::Reflect;
+use std::sync::Arc;
 
-pub struct Request {
+use typemap::TypeMap;
+use typemap::Key;
+use sapp::SAppWrapper;
+use sapp::SApp;
+
+
+pub struct Request<W, P>
+        where
+            W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
+            P: Key,
+            P::Value: Send + Sync
+         {
     method: Method,
     version: HttpVersion,
     headers: Headers,
@@ -24,12 +36,18 @@ pub struct Request {
     // // combined params of queries and body_params
     // full_params: Option<HashMap<String, String>>,
     // ext key value pair
-    ext: TypeMap
+    ext: TypeMap,
+    sapp: Arc<Box<SApp<W, P>>>
     
 } 
 
-impl Request {
-    pub fn new(method: Method, version: HttpVersion, headers: Headers, path: String, query_string: Option<String>) -> Request {
+impl<W, P> Request<W, P>
+        where
+            W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
+            P: Key,
+            P::Value: Send + Sync
+        {
+    pub fn new(sapp: Arc<Box<SApp<W, P>>>, method: Method, version: HttpVersion, headers: Headers, path: String, query_string: Option<String>) -> Request<W, P> {
         // seperate path and query_string
         // let pathvec: Vec<&str> = pathstr.split('?').collect();
         // let path = pathvec[0].to_owned();
@@ -41,6 +59,7 @@ impl Request {
         // }
         
         Request {
+            sapp: sapp,
             method: method,
             version: version,
             headers: headers,
@@ -104,5 +123,14 @@ impl Request {
     pub fn ext_mut(&mut self) -> &mut TypeMap {
         &mut self.ext
     }
+    
+    pub fn get_ext<P: Key>(&self) -> Option<P::Value> {
+        self.ext.get::<P>()
+    }
+    
+    pub fn get_global<P: Key>(&self) -> Option<P::Value> {
+        self.sapp.ext_map.get::<P>()
+    }
+    
 }
 

@@ -21,7 +21,7 @@ use std::sync::Arc;
 use std::marker::Reflect;
 use std::clone::Clone;
 use std::marker::PhantomData;
-
+use typemap::TypeMap;
 
 use mime_types::Types as MimeTypes;
 
@@ -72,7 +72,12 @@ pub trait SAppWrapper {
 }
 
 // later will add more fields
-pub struct SApp<W: SAppWrapper + Send + 'static> {
+pub struct SApp<W, P>
+    where
+        W: SAppWrapper + Send + 'static, 
+        P: Key, 
+        P::Value: Send + Sync
+     {
     pub address: String,
     pub port:    u32,
     // for app entry, global middeware
@@ -83,13 +88,15 @@ pub struct SApp<W: SAppWrapper + Send + 'static> {
     pub static_service: bool,
     // marker for type T
     // pub _marker: PhantomData<T>,
+    pub ext_map: TypeMap
 }
 
 
 
-impl<W> SApp<W>
-    where
-            W: SAppWrapper + Send + Sync + Reflect + Clone 
+impl<W, P> SApp<W, P>
+    where   W: SAppWrapper + Send + Sync + Reflect + Clone,
+            P: Key,
+            P::Value: Send + Sync 
     {
     pub fn new() -> SApp<W> {
         SApp {
@@ -99,6 +106,7 @@ impl<W> SApp<W>
             routers: Router::new(),
             static_service: true,
             // _marker: PhantomData
+            ext_map: TypeMap::new()
         }
     }
     
@@ -134,9 +142,15 @@ impl<W> SApp<W>
     }
     
     
+    pub fn add_global<P: Key>(&mut self, target_obj: P::Value) -> &mut Self {
+        self.ext_map.insert::<P>(target_obj);
+        
+        self
+    }
+    
     // add methods of this smodule
     // prefix:  such as '/user'
-    pub fn add_module<'a>(&mut self, sm: Box<SModule>) -> &mut Self {
+    pub fn add_module(&mut self, sm: Box<SModule>) -> &mut Self {
         
         let mut router = SRouter::new();
         // get the sm router
@@ -210,14 +224,17 @@ fn simple_file_get(path: &str) -> Result<(Vec<u8>, String)> {
 }
 
 
-pub struct RequestHandler<
+pub struct RequestHandler<W, P>
+        where
         // T: SModule + Send + Sync + Reflect + Clone + 'static, 
-        W: SAppWrapper + Send + Sync + Reflect + Clone + 'static> {
+        W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
+        P: Key, 
+        P::Value: Send + Sync {
     // router, keep the original handler function
     // pub router: SRouter,
     // wrapped router, keep the wrapped handler function
     // for actually use to recognize
-    pub sapp: Arc<Box<SApp<W>>>,
+    pub sapp: Arc<Box<SApp<W, P>>>,
     pub path: String,
     pub method: Method,
     pub version: HttpVersion,
@@ -231,11 +248,12 @@ pub struct RequestHandler<
     pub static_file: Option<Vec<u8>>,
 }
 
-impl<W> RequestHandler<W> 
-where    
-        W: SAppWrapper + Send + Sync + Reflect + Clone + 'static
+impl<W, P> RequestHandler<W, P> 
+where   W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
+        P: Key, 
+        P::Value: Send + Sync
 {
-    pub fn new(sapp: Arc<Box<SApp<W>>>) -> RequestHandler<W> {
+    pub fn new(sapp: Arc<Box<SApp<W, P>>>) -> RequestHandler<W, P> {
         RequestHandler {
             sapp: sapp,
             path: String::new(),
@@ -254,9 +272,11 @@ where
 }
 
 
-impl<W> HyperHandler<HttpStream> for RequestHandler<W>
+impl<W, P> HyperHandler<HttpStream> for RequestHandler<W, P>
 where  
-        W: SAppWrapper + Send + Sync + Reflect + Clone + 'static
+        W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
+        P: Key, 
+        P::Value: Send + Sync
  {
     fn on_request(&mut self, req: HyperRequest) -> Next {
         
@@ -288,6 +308,7 @@ where
                     
                     // make swiftrs request from hyper request
                     let mut sreq = Request::new(
+                        self.sapp.clone(),
                         req.method().clone(),
                         req.version().clone(),
                         req.headers().clone(),
@@ -360,6 +381,7 @@ where
                         query_string = Some(pathvec[1].to_owned());
                     }
                     let mut sreq = Request::new(
+                        self.sapp.clone(),
                         self.method.clone(),
                         self.version.clone(),
                         self.headers.clone(),
