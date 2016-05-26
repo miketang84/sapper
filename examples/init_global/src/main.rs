@@ -66,7 +66,7 @@ pub fn main() {
             
             Ok(())
         }))
-        .with_wrapper(MyApp)
+        .with_wrapper(Box::new(MyApp))
         .add_module(Box::new(Biz))
         .add_module(Box::new(Foo));
     

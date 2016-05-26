@@ -44,7 +44,7 @@ pub fn main() {
     sapp.address("127.0.0.1")
         .port(1337)
         // .init_global(Box::new(init_global))
-        .with_wrapper(MyApp)
+        .with_wrapper(Box::new(MyApp))
         .add_module(Box::new(Biz))
         .add_module(Box::new(Foo));
     

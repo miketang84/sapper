@@ -54,9 +54,13 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 pub struct ReqPathParams;
 
 pub trait SModule: Sync + Send {
-    fn before(&self, &mut Request) -> Result<()>;
+    fn before(&self, req: &mut Request) -> Result<()> {
+        Ok(())
+    }
     
-    fn after(&self, &Request, &mut Response) -> Result<()>;
+    fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
+        Ok(())
+    }
     
     // here add routers ....
     fn router(&self, &mut SRouter) -> Result<()>;
@@ -72,17 +76,14 @@ pub trait SAppWrapper {
 }
 
 pub type GlobalInitClosure = Box<Fn(&mut Request) -> Result<()> + 'static + Send + Sync>;
+pub type SAppWrapperType = Box<SAppWrapper + 'static + Send + Sync>;
 
 // later will add more fields
-pub struct SApp<W>
-    where 
-         W: SAppWrapper + Send + 'static,
-        //  G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
-{
+pub struct SApp {
     pub address: String,
     pub port:    u32,
     // for app entry, global middeware
-    pub wrapper: Option<W>,
+    pub wrapper: Option<Arc<SAppWrapperType>>,
     // for actually use to recognize
     pub routers: Router,
     // do simple static file service?
@@ -94,12 +95,8 @@ pub struct SApp<W>
 
 
 
-impl<W> SApp<W>
-    where
-            W: SAppWrapper + Send + Sync + Reflect + Clone,
-            // G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
-    {
-    pub fn new() -> SApp<W> {
+impl SApp {
+    pub fn new() -> SApp {
         SApp {
             address: String::new(),
             port: 0,
@@ -122,8 +119,8 @@ impl<W> SApp<W>
         });
     }
     
-    pub fn with_wrapper(&mut self, w: W) -> &mut Self {
-        self.wrapper = Some(w);
+    pub fn with_wrapper(&mut self, w: SAppWrapperType) -> &mut Self {
+        self.wrapper = Some(Arc::new(w));
         self
     }
     
@@ -175,7 +172,7 @@ impl<W> SApp<W>
                 let handler = handler.clone();
                 let sm = sm.clone();
                 // let sm = Box::new(sm);
-                let wrapper = self.wrapper.clone().unwrap();
+                let wrapper = self.wrapper.clone();
                 let init_closure = self.init_closure.clone();
                 self.routers.route(method, glob, Arc::new(Box::new(move |req: &mut Request| -> Result<Response> {
                     // if init_closure.is_some() {
@@ -184,11 +181,15 @@ impl<W> SApp<W>
                     if let Some(ref c) = init_closure {
                         c(req)?; 
                     }
-                    wrapper.before(req)?;
+                    if let Some(ref wrapper) = wrapper {
+                        wrapper.before(req)?;
+                    }
                     sm.before(req)?;
                     let mut response: Response = handler.handle(req)?;
                     sm.after(req, &mut response)?;
-                    wrapper.after(req, &mut response)?;
+                    if let Some(ref wrapper) = wrapper {
+                        wrapper.after(req, &mut response)?;
+                    }
                     Ok(response)
                 })));
             }
@@ -230,17 +231,12 @@ fn simple_file_get(path: &str) -> Result<(Vec<u8>, String)> {
 }
 
 
-pub struct RequestHandler<W>
-    where 
-        // T: SModule + Send + Sync + Reflect + Clone + 'static, 
-        W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
-        // G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
-{
+pub struct RequestHandler {
     // router, keep the original handler function
     // pub router: SRouter,
     // wrapped router, keep the wrapped handler function
     // for actually use to recognize
-    pub sapp: Arc<Box<SApp<W>>>,
+    pub sapp: Arc<Box<SApp>>,
     pub path: String,
     pub method: Method,
     pub version: HttpVersion,
@@ -254,12 +250,8 @@ pub struct RequestHandler<W>
     pub static_file: Option<Vec<u8>>,
 }
 
-impl<W> RequestHandler<W> 
-where    
-        W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
-        // G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
-{
-    pub fn new(sapp: Arc<Box<SApp<W>>>) -> RequestHandler<W> {
+impl RequestHandler {
+    pub fn new(sapp: Arc<Box<SApp>>) -> RequestHandler {
         RequestHandler {
             sapp: sapp,
             path: String::new(),
@@ -279,11 +271,7 @@ where
 }
 
 
-impl<W> HyperHandler<HttpStream> for RequestHandler<W>
-where  
-        W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
-        // G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
- {
+impl HyperHandler<HttpStream> for RequestHandler {
     fn on_request(&mut self, req: HyperRequest) -> Next {
         
         match *req.uri() {
