@@ -1,0 +1,10 @@
+[package]
+name = "init_global"
+version = "0.1.0"
+authors = ["Mike Tang <miketang84@outlook.com>"]
+
+[dependencies]
+sapper = { path="../../" }
+log = "0.3"
+env_logger = "0.3"
+typemap = "0.3"
