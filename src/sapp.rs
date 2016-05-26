@@ -136,7 +136,7 @@ impl<W> SApp<W>
     
     // add methods of this smodule
     // prefix:  such as '/user'
-    pub fn add_module<'a>(&mut self, sm: Box<SModule>) -> &mut Self {
+    pub fn add_module(&mut self, sm: Box<SModule>) -> &mut Self {
         
         let mut router = SRouter::new();
         // get the sm router
