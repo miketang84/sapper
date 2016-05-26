@@ -71,11 +71,13 @@ pub trait SAppWrapper {
     
 }
 
+pub type GlobalInitClosure = Box<Fn(&mut Request) -> Result<()> + 'static + Send + Sync>;
+
 // later will add more fields
-pub struct SApp<W, G>
+pub struct SApp<W>
     where 
          W: SAppWrapper + Send + 'static,
-         G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
+        //  G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
 {
     pub address: String,
     pub port:    u32,
@@ -87,17 +89,17 @@ pub struct SApp<W, G>
     pub static_service: bool,
     // marker for type T
     // pub _marker: PhantomData<T>,
-    pub init_closure: Option<Arc<Box<G>>>
+    pub init_closure: Option<Arc<GlobalInitClosure>>
 }
 
 
 
-impl<W, G> SApp<W, G>
+impl<W> SApp<W>
     where
             W: SAppWrapper + Send + Sync + Reflect + Clone,
-            G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
+            // G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
     {
-    pub fn new() -> SApp<W, G> {
+    pub fn new() -> SApp<W> {
         SApp {
             address: String::new(),
             port: 0,
@@ -140,8 +142,8 @@ impl<W, G> SApp<W, G>
         self
     }
     
-    pub fn init_global(&mut self, clos: G) -> &mut Self {
-        self.init_closure = Some(Arc::new(Box::new(clos)));
+    pub fn init_global(&mut self, clos: GlobalInitClosure) -> &mut Self {
+        self.init_closure = Some(Arc::new(clos));
         self
     }
     
@@ -228,17 +230,17 @@ fn simple_file_get(path: &str) -> Result<(Vec<u8>, String)> {
 }
 
 
-pub struct RequestHandler<W, G>
+pub struct RequestHandler<W>
     where 
         // T: SModule + Send + Sync + Reflect + Clone + 'static, 
         W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
-        G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
+        // G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
 {
     // router, keep the original handler function
     // pub router: SRouter,
     // wrapped router, keep the wrapped handler function
     // for actually use to recognize
-    pub sapp: Arc<Box<SApp<W, G>>>,
+    pub sapp: Arc<Box<SApp<W>>>,
     pub path: String,
     pub method: Method,
     pub version: HttpVersion,
@@ -252,12 +254,12 @@ pub struct RequestHandler<W, G>
     pub static_file: Option<Vec<u8>>,
 }
 
-impl<W, G> RequestHandler<W, G> 
+impl<W> RequestHandler<W> 
 where    
         W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
-        G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
+        // G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
 {
-    pub fn new(sapp: Arc<Box<SApp<W, G>>>) -> RequestHandler<W, G> {
+    pub fn new(sapp: Arc<Box<SApp<W>>>) -> RequestHandler<W> {
         RequestHandler {
             sapp: sapp,
             path: String::new(),
@@ -277,10 +279,10 @@ where
 }
 
 
-impl<W, G> HyperHandler<HttpStream> for RequestHandler<W, G>
+impl<W> HyperHandler<HttpStream> for RequestHandler<W>
 where  
         W: SAppWrapper + Send + Sync + Reflect + Clone + 'static,
-        G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
+        // G: Fn(&mut Request) -> Result<()> + Send + Sync + Reflect + 'static
  {
     fn on_request(&mut self, req: HyperRequest) -> Next {
         

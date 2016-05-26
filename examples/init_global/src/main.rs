@@ -58,14 +58,14 @@ pub fn main() {
     let mut sapp = SApp::new();
     sapp.address("127.0.0.1")
         .port(1337)
-        .init_global(move |req: &mut Request| -> Result<()> {
+        .init_global(Box::new(move |req: &mut Request| -> Result<()> {
             println!("in init_global {:?}", req.query_string());
             req.ext_mut().insert::<A_INT>(a_global.clone());
             req.ext_mut().insert::<A_HashMap>(a_hash.clone());
             req.ext_mut().insert::<A_Mutex>(a_mutex.clone());
             
             Ok(())
-        })
+        }))
         .with_wrapper(MyApp)
         .add_module(Box::new(Biz))
         .add_module(Box::new(Foo));
