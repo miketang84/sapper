@@ -54,6 +54,7 @@ Transfer/sec:      4.41MB
 - Three level granularity (global, module, function handler) middleware controller and unified middleware presentation; 
 - Typesafe abstraction, keep the same spirit with hyper;
 - For easy using, will supply some convenient macros to help write business logic;
+- Global object cross requests;
 
 ## Philosophy
 
@@ -88,24 +89,32 @@ In Sapper, nearly every important thing is a `Type`. They are:
 - Sapper's plugin processor can be used in app level wrapper, module level wrapper, and each handler. These three level hierarchical controls make it flexible to construct your business.
 
 
-
-
-
 ## TODO
 
 1. [X] QueryParams (x-www-form-urlencoded);
 2. [X] BodyParams (x-www-form-urlencoded);
 3. [X] BodyJsonParams;
-4. [ ] Some macros;
-5. [ ] Other components;
+3. [X] Basic static file serving for dev;
+5. [X] Global object shared cross requests;
+4. [ ] Multipart;
+6. [ ] Macros;
 
 
 ## Plugins
 
-- [ReqQueryParams](https://github.com/sappworks/sapper_query_params)  parsing query string for req
-- [ReqBodyParams](https://github.com/sappworks/sapper_body_params) parsing body parameters for req, including url form encoded, json type, json to struct macro. 
-- [SessionCookie](https://github.com/sappworks/sapper_cookie) a cookie plugin, and else supply a helper set_cookie function
-- [ReqBasicLogger](https://github.com/sappworks/sapper_request_basic_logger) record request and caculate its time
+- [ReqQueryParams](https://github.com/sappworks/sapper_query_params)  parsing query string for req;
+- [ReqBodyParams](https://github.com/sappworks/sapper_body_params) parsing body parameters for req, including url form encoded, json type, json to struct macro;
+- [ReqBasicLogger](https://github.com/sappworks/sapper_request_basic_logger) record request and caculate its time;
+- [SessionCookie](https://github.com/sappworks/sapper_cookie) a cookie plugin, and else supply a helper set_cookie function;
+
+
+## Components
+
+- [Template](https://github.com/sappworks/sapper_tmpl) use tera to render template;
+- [sporm](https://github.com/sappworks/sporm) orm part can be used in sapper;
+- [spcodegen](https://github.com/sappworks/spcodegen) codegen helper part to sporm;
+
+
 
 ## Related Projects
 
