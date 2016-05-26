@@ -15,7 +15,7 @@ pub struct Request {
     // query string part of this url
     query_string: Option<String>,
     // if has body, keep it as raw here
-    raw_body: Option<String>,
+    raw_body: Option<Vec<u8>>,
     // // params pair parsed from url query string
     // queries: Option<HashMap<String, String>>,
     // // params pair parsed from body
@@ -76,11 +76,11 @@ impl Request {
         &self.query_string
     }
     
-    pub fn raw_body(&self) -> &Option<String> {
+    pub fn raw_body(&self) -> &Option<Vec<u8>> {
         &self.raw_body
     }
     
-    pub fn set_raw_body(&mut self, body: String) -> &mut Self {
+    pub fn set_raw_body(&mut self, body: Vec<u8>) -> &mut Self {
         self.raw_body = Some(body);
         self
     }

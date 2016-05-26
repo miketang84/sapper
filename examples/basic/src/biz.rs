@@ -5,6 +5,8 @@ use sapper::Request;
 use sapper::Response;
 use sapper::SRouter;
 
+use std::str;
+
 #[derive(Clone)]
 pub struct Biz;
 
@@ -29,6 +31,7 @@ impl Biz {
     fn test_post(req: &mut Request) -> Result<Response> {
         
         println!("in test_post, raw_body: {:?}", req.raw_body());
+        println!("in test_post, raw_body string: {:?}",  str::from_utf8(&req.raw_body().clone().unwrap()[..]).unwrap());
         
         let mut response = Response::new();
         response.write_body("hello, I'am !".to_string());

@@ -244,7 +244,7 @@ pub struct RequestHandler<W, G>
     pub version: HttpVersion,
     pub headers: Headers,
     pub buf: Vec<u8>,
-    pub body: String,
+    pub body: Vec<u8>,
     pub has_body: bool,
     pub write_pos: usize,
     // response deliver
@@ -265,7 +265,8 @@ where
             version: Default::default(),
             headers: Default::default(),
             buf: vec![0; 2048],
-            body: String::new(),
+            body: Vec::new(),
+            // body: String::new(),
             has_body: false,
             write_pos: 0,
             response: Err(Error::NotFound("/".to_owned())),
@@ -407,7 +408,8 @@ where
                     return Next::write()
                 },
                 Ok(n) => {
-                    self.body.push_str(str::from_utf8(&self.buf[0..n]).unwrap());
+                    self.body.append(&mut self.buf[0..n].to_vec());
+                    // self.body.push_str(str::from_utf8(&self.buf[0..n]).unwrap());
                     return Next::read_and_write()
                 }
                 Err(e) => match e.kind() {
