@@ -5,7 +5,7 @@ authors = ["Mike Tang <miketang84@outlook.com>"]
 license = "MIT"
 
 [dependencies]
-hyper = { git="https://github.com/hyperium/hyper.git", branch = "mio" }
+hyper = { git="https://github.com/hyperium/hyper.git" }
 log = "0.3"
 env_logger = "0.3"
 route-recognizer = "0.1"
