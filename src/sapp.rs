@@ -446,9 +446,6 @@ impl HyperHandler<HttpStream> for RequestHandler {
                     // here, set hyper response status code, and headers
                     res.headers_mut().set(ContentLength(body.len() as u64));
                 }
-                else {
-                    res.headers_mut().set(ContentLength(0));
-                }
 
                 Next::write()
             },
