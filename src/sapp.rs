@@ -28,6 +28,7 @@ use mime_types::Types as MimeTypes;
 pub use typemap::Key;
 pub use hyper::header::Headers;
 pub use hyper::header;
+pub use hyper::status;
 pub use hyper::mime;
 pub use request::Request;
 pub use response::Response;

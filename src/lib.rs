@@ -33,4 +33,5 @@ pub use sapp::Result;
 pub use sapp::Error;
 pub use sapp::Key;
 pub use sapp::header;
+pub use sapp::status;
 pub use sapp::mime;
