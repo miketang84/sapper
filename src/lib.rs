@@ -35,3 +35,4 @@ pub use sapp::Key;
 pub use sapp::header;
 pub use sapp::status;
 pub use sapp::mime;
+pub use sapp::ReqPathParams;
