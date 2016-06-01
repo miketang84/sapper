@@ -422,7 +422,7 @@ impl HyperHandler<HttpStream> for RequestHandler {
             Ok(ref response) => {
                 if let &Some(ref body) = response.body() {
                     // default set content type as html
-                    res.headers_mut().set(ContentType::html());
+                    res.headers_mut().set(ContentType::plaintext());
                     
                     // update top level headers to low level headers
                     for header in response.headers().iter() {
