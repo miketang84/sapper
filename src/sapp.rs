@@ -28,13 +28,20 @@ use mime_types::Types as MimeTypes;
 pub use typemap::Key;
 pub use hyper::header::Headers;
 pub use hyper::header;
-pub use hyper::status;
 pub use hyper::mime;
 pub use request::Request;
 pub use response::Response;
 pub use router::Router;
 pub use srouter::SRouter;
 pub use shandler::SHandler;
+
+/// Status Codes
+pub mod status {
+    pub use hyper::status::StatusCode as Status;
+    pub use hyper::status::StatusCode::*;
+    pub use hyper::status::StatusClass;
+}
+
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Error {
