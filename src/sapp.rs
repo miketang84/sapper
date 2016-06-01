@@ -427,19 +427,27 @@ impl HyperHandler<HttpStream> for RequestHandler {
         
         match self.response {
             Ok(ref response) => {
+                // set status
+                res.set_status(response.status());
+                
+                // set headers
+                res.headers_mut().set(ContentType::plaintext());
+                // update top level headers to low level headers
+                for header in response.headers().iter() {
+                    res.headers_mut()
+                        .set_raw(header.name().to_owned(), 
+                            vec![header.value_string().as_bytes().to_vec()]);
+                }
+                
+                // set content length
                 if let &Some(ref body) = response.body() {
                     // default set content type as html
-                    res.headers_mut().set(ContentType::plaintext());
-                    
-                    // update top level headers to low level headers
-                    for header in response.headers().iter() {
-                        res.headers_mut()
-                            .set_raw(header.name().to_owned(), 
-                                vec![header.value_string().as_bytes().to_vec()]);
-                    }
                     
                     // here, set hyper response status code, and headers
                     res.headers_mut().set(ContentLength(body.len() as u64));
+                }
+                else {
+                    res.headers_mut().set(ContentLength(0));
                 }
 
                 Next::write()
