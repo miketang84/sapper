@@ -2,7 +2,7 @@
  
 Sapper, a lightweight web framework, written in Rust.
 
-Sapper focuses on easy using. But it is in very alpha stage now and only compiled with rust nightly.
+Sapper focuses on easy using. But it is in very alpha stage now and only compiled with **rust nightly**.
 
 
 ## Example
