@@ -1,4 +1,6 @@
 # Sapper
+
+![](https://travis-ci.org/sappworks/sapper.svg?branch=master)
  
 Sapper, a lightweight web framework, written in Rust.
 
