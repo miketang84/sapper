@@ -4,12 +4,12 @@
  
 Sapper, a lightweight web framework, written in Rust.
 
-Sapper focuses on easy using. But it is in very alpha stage now and only compiled with **rust nightly**.
+Sapper focuses on easy of use. It is alpha now and only compiled with **rust nightly**.
 
 
-## Example
+## Basic Example
 
-Now , you can boot the example server with:
+Now, you can boot the example server with:
 
 ```
 cd examples/basic/
@@ -26,6 +26,20 @@ or
 `http://localhost:1337/test`
 
 or any other url to test it.
+
+## Other Examples
+
+1. [tiny](https://github.com/sappworks/sapper/tree/master/examples/tiny)
+2. [init_global](https://github.com/sappworks/sapper/tree/master/examples/init_global)
+3. [query params](https://github.com/sappworks/sapper_query_params/tree/master/examples/basic)
+4. [body params](https://github.com/sappworks/sapper_body_params/tree/master/examples/basic)
+5. [cookie](https://github.com/sappworks/sapper_cookie/tree/master/examples/basic)
+6. [template rendering](https://github.com/sappworks/sapper_tmpl/tree/master/examples/basic)
+7. [simple logger](https://github.com/sappworks/sapper_request_basic_logger/tree/master/examples/basic)
+7. [response json](https://github.com/sappworks/sapper_examples/tree/master/res_json)
+8. [mvc with sporm](https://github.com/sappworks/sapper_examples/tree/master/mvc_example)
+9. [mvc with diesel](https://github.com/sappworks/sapper_examples/tree/master/mvc_diesel_example)
+10. more continued...
 
 ## Basic Benchmark
 
@@ -98,8 +112,9 @@ In Sapper, nearly every important thing is a `Type`. They are:
 3. [X] BodyJsonParams;
 3. [X] Basic static file serving for dev;
 5. [X] Global object shared cross requests;
+6. [X] Macros;
 4. [ ] Multipart;
-6. [ ] Macros;
+
 
 
 ## Plugins
