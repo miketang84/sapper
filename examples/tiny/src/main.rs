@@ -1,10 +1,11 @@
+#![allow(unused_variables)]
 
 extern crate sapper;
 extern crate env_logger;
 #[macro_use]
 extern crate log;
 
-use sapper::{SApp, SAppWrapper, Request, Response, Result, SModule};
+use sapper::SApp;
 
 
 

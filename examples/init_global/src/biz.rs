@@ -8,9 +8,9 @@ use sapper::SRouter;
 #[derive(Clone)]
 pub struct Biz;
 
-use A_INT;
-use A_HashMap;
-use A_Mutex;
+use AINT;
+use AHashMap;
+use AMutex;
 
 impl Biz {
     // those handlers in module Biz
@@ -23,14 +23,14 @@ impl Biz {
     }
     
     fn test(req: &mut Request) -> Result<Response> {
-        let a_global = req.ext().get::<A_INT>();
+        let a_global = req.ext().get::<AINT>();
         println!("in test, a_global is {:?}", a_global);
-        let a_hash = req.ext().get::<A_HashMap>();
+        let a_hash = req.ext().get::<AHashMap>();
         println!("in test, a_hash is {:?}", a_hash);
-        let a_mutex = req.ext().get::<A_Mutex>();
+        let a_mutex = req.ext().get::<AMutex>();
         println!("in test, a_mutex is {:?}", a_mutex);
         {
-            let mut a_mutex = a_mutex.unwrap();
+            let a_mutex = a_mutex.unwrap();
             let mut data = a_mutex.lock().unwrap();
             data.insert("foo", "bar");
             

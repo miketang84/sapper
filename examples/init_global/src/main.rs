@@ -1,3 +1,4 @@
+#![allow(unused_variables)]
 
 extern crate sapper;
 extern crate env_logger;
@@ -7,7 +8,7 @@ extern crate typemap;
 
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
-use sapper::{SApp, SAppWrapper, Request, Response, Result, SModule};
+use sapper::{SApp, SAppWrapper, Request, Response, Result};
 use typemap::Key;
 
 
@@ -35,12 +36,12 @@ impl SAppWrapper for MyApp {
     }
 }
 
-pub struct A_INT;
-impl Key for A_INT { type Value = Arc<Box<usize>>; }
-pub struct A_HashMap;
-impl Key for A_HashMap { type Value = HashMap<&'static str, &'static str>; }
-pub struct A_Mutex;
-impl Key for A_Mutex { type Value = Arc<Mutex<HashMap<&'static str, &'static str>>>; }
+pub struct AINT;
+impl Key for AINT { type Value = Arc<Box<usize>>; }
+pub struct AHashMap;
+impl Key for AHashMap { type Value = HashMap<&'static str, &'static str>; }
+pub struct AMutex;
+impl Key for AMutex { type Value = Arc<Mutex<HashMap<&'static str, &'static str>>>; }
 
 
 pub fn main() {
@@ -60,9 +61,9 @@ pub fn main() {
         .port(1337)
         .init_global(Box::new(move |req: &mut Request| -> Result<()> {
             println!("in init_global {:?}", req.query_string());
-            req.ext_mut().insert::<A_INT>(a_global.clone());
-            req.ext_mut().insert::<A_HashMap>(a_hash.clone());
-            req.ext_mut().insert::<A_Mutex>(a_mutex.clone());
+            req.ext_mut().insert::<AINT>(a_global.clone());
+            req.ext_mut().insert::<AHashMap>(a_hash.clone());
+            req.ext_mut().insert::<AMutex>(a_mutex.clone());
             
             Ok(())
         }))
