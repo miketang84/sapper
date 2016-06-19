@@ -34,7 +34,7 @@ pub struct Router {
 impl Router {
     /// Construct a new, empty `Router`.
     ///
-    /// ```
+    /// ```ignore
     /// # use router::Router;
     /// let router = Router::new();
     /// ```
