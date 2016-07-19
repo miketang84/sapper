@@ -280,7 +280,7 @@ impl RequestHandler {
 
 
 impl HyperHandler<HttpStream> for RequestHandler {
-    fn on_request(&mut self, req: HyperRequest) -> Next {
+    fn on_request(&mut self, req: HyperRequest<HttpStream>) -> Next {
         
         match *req.uri() {
             RequestUri::AbsolutePath(ref path) =>  {
