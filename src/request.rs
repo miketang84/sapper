@@ -7,95 +7,48 @@ use std::collections::HashMap;
 use typemap::TypeMap;
 
 pub struct Request {
-    method: Method,
-    version: HttpVersion,
-    headers: Headers,
-    // only path part of this url
-    path: String,
-    // query string part of this url
-    query_string: Option<String>,
-    // if has body, keep it as raw here
-    raw_body: Option<Vec<u8>>,
-    // // params pair parsed from url query string
-    // queries: Option<HashMap<String, String>>,
-    // // params pair parsed from body
-    // // if body is json, limit it to one level
-    // body_params: Option<HashMap<String, String>>,
-    // // combined params of queries and body_params
-    // full_params: Option<HashMap<String, String>>,
-    // ext key value pair
+    hyper_request: &HyperRequest,
     ext: TypeMap
     
 } 
 
 impl Request {
-    pub fn new(method: Method, version: HttpVersion, headers: Headers, path: String, query_string: Option<String>) -> Request {
-        // seperate path and query_string
-        // let pathvec: Vec<&str> = pathstr.split('?').collect();
-        // let path = pathvec[0].to_owned();
-        // let mut query_string = None;
-        
-        // // if has query_string
-        // if pathvec.len() > 1 {
-        //     query_string = Some(pathvec[1].to_owned());
-        // }
-        
+    pub fn new(hyper_request: &HyperRequest) -> Request {
         Request {
-            method: method,
-            version: version,
-            headers: headers,
-            
-            path: path,
-            query_string: query_string,
-            raw_body: None,
-            // queries: None,
-            // body_params: None,
-            // full_params: None,
+            hyper_request: hyper_request,
             ext: TypeMap::new()
         }
 
     }
     
     pub fn method(&self) -> &Method {
-        &self.method
+        self.hyper_request.method()
     }
     
     pub fn version(&self) -> &HttpVersion {
-        &self.version
+        self.hyper_request.version
     }
     
     pub fn headers(&self) -> &Headers {
-        &self.headers
+        self.hyper_request.headers
     }
     
-    pub fn path(&self) -> &String {
-        &self.path
+    pub fn path(&self) -> Option<&str> {
+        self.hyper_request.path()
     }
     
-    pub fn query_string(&self) -> &Option<String> {
-        &self.query_string
+    pub fn query(&self) -> Option<&str> {
+        self.hyper_request.query()
     }
     
-    pub fn raw_body(&self) -> &Option<Vec<u8>> {
-        &self.raw_body
-    }
-    
-    pub fn set_raw_body(&mut self, body: Vec<u8>) -> &mut Self {
-        self.raw_body = Some(body);
-        self
-    }
-    
-    // pub fn query(&self) -> &Option<HashMap<String, String>> {
-    //     &self.queries
-    // }
-    
-    // pub fn body(&self) -> &Option<HashMap<String, String>> {
-    //     &self.body_params
-    // }
-    
-    // pub fn params(&self) -> &Option<HashMap<String, String>> {
-    //     &self.full_params
-    // }
+//    pub fn raw_body(&self) -> &Option<Vec<u8>> {
+//        &self.raw_body
+//    }
+//    
+//    pub fn set_raw_body(&mut self, body: Vec<u8>) -> &mut Self {
+//        self.raw_body = Some(body);
+//        self
+//    }
     
     pub fn ext(&self) -> &TypeMap {
         &self.ext
