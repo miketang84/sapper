@@ -4,19 +4,17 @@ use hyper::status::StatusCode;
 use hyper::header::Headers;
 
 
-#[derive(Default)]
-pub struct Response {
+#[derive(Default, Copy)]
+pub struct SapperResponse {
     status: StatusCode,
     headers: Headers,
-    // body: Option<String>,
     body: Option<Vec<u8>>,
 }
 
 
-impl Response {
-    pub fn new() -> Response {
-        // create this object
-        let res: Response = Default::default();
+impl SapperResponse {
+    pub fn new() -> SapperResponse {
+        let res: SapperResponse = Default::default();
         
         res
     }

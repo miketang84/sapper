@@ -35,6 +35,25 @@ pub use router::Router;
 pub use srouter::SRouter;
 pub use shandler::SHandler;
 
+
+////////////////////////
+extern crate futures;
+extern crate hyper;
+extern crate pretty_env_logger;
+
+use futures::future::FutureResult;
+
+use hyper::{Get, Post, StatusCode};
+use hyper::header::ContentLength;
+use hyper::server::{Http, Service, Request, Response};
+////////////////////////
+
+
+#[derive(Clone, Copy)]
+struct SapperInternal;
+
+
+
 /// Status Codes
 pub mod status {
     pub use hyper::status::StatusCode as Status;
@@ -59,7 +78,8 @@ pub enum Error {
 pub type Result<T> = ::std::result::Result<T, Error>; 
 
 #[derive(Clone)]
-pub struct ReqPathParams;
+pub struct PathParams;
+
 
 pub trait SModule: Sync + Send {
     fn before(&self, req: &mut Request) -> Result<()> {
@@ -210,6 +230,37 @@ impl SApp {
 }
 
 
+
+impl Service for SapperInternal {
+    type Request = HyperRequest;
+    type Response = HyperResponse;
+    type Error = hyper::Error;
+    type Future = FutureResult<Response, hyper::Error>;
+
+    fn call(&self, req: Request) -> Self::Future {
+        
+        // make request from hyper request
+        let mut sreq = SapperRequest::new(&req);
+
+        // pass req to routers, execute matched biz handler
+        let response = self.sapp.routers.handle_method(&mut sreq).unwrap();
+        
+        // here, if can not match any router, we need check static file service
+        // or response NotFound
+        
+        futures::future::ok(response)
+        
+    }
+
+}
+
+
+
+
+
+
+
+
 // this is very expensive in time
 // should make it as global 
 lazy_static! {
@@ -275,7 +326,6 @@ impl RequestHandler {
             static_file: None,
         }
     }
-    
 }
 
 

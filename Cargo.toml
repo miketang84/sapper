@@ -7,9 +7,9 @@ license = "MIT"
 [dependencies]
 hyper = { git="https://github.com/hyperium/hyper.git", default-features=false }
 #hyper = { git="https://github.com/hyperium/hyper.git" }
-log = "0.3"
-env_logger = "0.3"
-route-recognizer = "0.1"
-typemap = "0.3"
-conduit-mime-types = "0.7"
-lazy_static = "0.2"
+log = "*"
+env_logger = "*"
+route-recognizer = "*"
+typemap = "*"
+conduit-mime-types = "*"
+lazy_static = "*"

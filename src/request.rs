@@ -4,98 +4,51 @@ use hyper::method::Method;
 use hyper::header::Headers;
 use hyper::version::HttpVersion;
 use std::collections::HashMap;
+use std::net::SocketAddr;
 use typemap::TypeMap;
+use hyper::Body;
 
-pub struct Request {
-    method: Method,
-    version: HttpVersion,
-    headers: Headers,
-    // only path part of this url
-    path: String,
-    // query string part of this url
-    query_string: Option<String>,
-    // if has body, keep it as raw here
-    raw_body: Option<Vec<u8>>,
-    // // params pair parsed from url query string
-    // queries: Option<HashMap<String, String>>,
-    // // params pair parsed from body
-    // // if body is json, limit it to one level
-    // body_params: Option<HashMap<String, String>>,
-    // // combined params of queries and body_params
-    // full_params: Option<HashMap<String, String>>,
-    // ext key value pair
+pub struct SapperRequest {
+    raw_req: &HyperRequest,
     ext: TypeMap
-    
 } 
 
-impl Request {
-    pub fn new(method: Method, version: HttpVersion, headers: Headers, path: String, query_string: Option<String>) -> Request {
-        // seperate path and query_string
-        // let pathvec: Vec<&str> = pathstr.split('?').collect();
-        // let path = pathvec[0].to_owned();
-        // let mut query_string = None;
-        
-        // // if has query_string
-        // if pathvec.len() > 1 {
-        //     query_string = Some(pathvec[1].to_owned());
-        // }
-        
+impl SapperRequest {
+    pub fn new(req: &HyperRequest) -> SapperRequest {
+
         Request {
-            method: method,
-            version: version,
-            headers: headers,
-            
-            path: path,
-            query_string: query_string,
-            raw_body: None,
-            // queries: None,
-            // body_params: None,
-            // full_params: None,
+            raw_req: req,
             ext: TypeMap::new()
         }
-
+    }
+    
+    pub fn remote_addr(&self) -> Option<SocketAddr> {
+        self.raw_req.remote_addr()
     }
     
     pub fn method(&self) -> &Method {
-        &self.method
+        self.raw_req.method()
     }
     
-    pub fn version(&self) -> &HttpVersion {
-        &self.version
+    pub fn version(&self) -> HttpVersion {
+        self.raw_req.version()
     }
     
     pub fn headers(&self) -> &Headers {
-        &self.headers
+        self.raw_req.headers()
     }
     
-    pub fn path(&self) -> &String {
-        &self.path
+    pub fn path(&self) -> &str {
+        self.raw_req.path()
     }
     
-    pub fn query_string(&self) -> &Option<String> {
-        &self.query_string
+    pub fn query(&self) -> Option<&str> {
+        self.raw_req.query()
     }
     
-    pub fn raw_body(&self) -> &Option<Vec<u8>> {
-        &self.raw_body
+    pub fn body_ref(&self) -> Option<&Body> {
+        self.raw_req.body_ref()
     }
-    
-    pub fn set_raw_body(&mut self, body: Vec<u8>) -> &mut Self {
-        self.raw_body = Some(body);
-        self
-    }
-    
-    // pub fn query(&self) -> &Option<HashMap<String, String>> {
-    //     &self.queries
-    // }
-    
-    // pub fn body(&self) -> &Option<HashMap<String, String>> {
-    //     &self.body_params
-    // }
-    
-    // pub fn params(&self) -> &Option<HashMap<String, String>> {
-    //     &self.full_params
-    // }
     
     pub fn ext(&self) -> &TypeMap {
         &self.ext
