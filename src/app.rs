@@ -1,52 +1,34 @@
-
 use std::str;
 use std::io::{self, Read, Write};
 use std::fs::File;
 use std::path::Path;
-
-use hyper::{Get, Post, StatusCode, RequestUri, Decoder, Encoder, Next};
-use hyper::header::{ContentLength, ContentType};
-use hyper::net::HttpStream;
-
-use hyper::server::Server;
-use hyper::server::Handler as HyperHandler;
-use hyper::server::Request as HyperRequest;
-use hyper::server::Response as HyperResponse;
-use hyper::method::Method;
-use hyper::version::HttpVersion;
-
 use std::result::Result as StdResult;
 use std::error::Error as StdError;
 use std::sync::Arc;
 use std::marker::Reflect;
 use std::clone::Clone;
-use std::marker::PhantomData;
 
+use hyper::{Get, Post, StatusCode};
+use hyper::header::{ContentLength, ContentType};
 
+use hyper::server::{Http, Service};
+use hyper::server::Request as HyperRequest;
+use hyper::server::Response as HyperResponse;
+use hyper::Method;
+use hyper::HttpVersion;
+
+use futures::future::FutureResult;
 use mime_types::Types as MimeTypes;
+
 
 pub use typemap::Key;
 pub use hyper::header::Headers;
 pub use hyper::header;
 pub use hyper::mime;
-pub use request::Request;
-pub use response::Response;
-pub use router::Router;
-pub use srouter::SRouter;
-pub use shandler::SHandler;
-
-
-////////////////////////
-extern crate futures;
-extern crate hyper;
-extern crate pretty_env_logger;
-
-use futures::future::FutureResult;
-
-use hyper::{Get, Post, StatusCode};
-use hyper::header::ContentLength;
-use hyper::server::{Http, Service, Request, Response};
-////////////////////////
+pub use request::SapperRequest;
+pub use response::SapperResponse;
+pub use router_m::Router;
+pub use router::SapperRouter;
 
 
 #[derive(Clone)]
@@ -68,54 +50,47 @@ pub enum Error {
     InvalidRouterConfig,
     FileNotExist,
     ShouldRedirect(String),
-    Prompt(String),
-    Warning(String),
     Fatal(String),
     Custom(String),
 }
-
 pub type Result<T> = ::std::result::Result<T, Error>; 
 
 
 
 pub trait SapperModule: Sync + Send {
-    fn before(&self, req: &mut Request) -> Result<()> {
+    fn before(&self, req: &mut SapperRequest) -> Result<()> {
         Ok(())
     }
     
-    fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
+    fn after(&self, req: &SapperRequest, res: &mut SapperResponse) -> Result<()> {
         Ok(())
     }
     
-    // here add routers ....
-    fn router(&self, &mut SRouter) -> Result<()>;
-    // fn router(&self, SRouter) -> Result<SRouter>;
+    fn router(&self, &mut SapperRouter) -> Result<()>;
     
 }
 
 pub trait SapperAppShell {
-    fn before(&self, &mut Request) -> Result<()>;
-    
-    fn after(&self, &Request, &mut Response) -> Result<()>;
-    
+    fn before(&self, &mut SapperRequest) -> Result<()>;
+    fn after(&self, &SapperRequest, &mut SapperResponse) -> Result<()>;
 }
 
-pub type GlobalInitClosure = Box<Fn(&mut Request) -> Result<()> + 'static + Send + Sync>;
+pub type GlobalInitClosure = Box<Fn(&mut SapperRequest) -> Result<()> + 'static + Send + Sync>;
 pub type SapperAppShellType = Box<SapperAppShell + 'static + Send + Sync>;
 
 
 #[derive(Clone, Copy)]
 pub struct SapperApp {
-    pub address: String,
-    pub port:    u32,
+    pub address:        String,
+    pub port:           u32,
     // for app entry, global middeware
-    pub wrapper: Option<Arc<SAppWrapperType>>,
+    pub shell:          Option<Arc<SapperAppShellType>>,
     // for actually use to recognize
-    pub routers: Router,
+    pub routers:        Router,
     // do simple static file service
     pub static_service: bool,
 
-    pub init_closure: Option<Arc<GlobalInitClosure>>
+    pub init_closure:   Option<Arc<GlobalInitClosure>>
 }
 
 
@@ -148,7 +123,7 @@ impl SapperApp {
     }
 
     pub fn with_shell(&mut self, w: SapperAppShellType) -> &mut Self {
-        self.wrapper = Some(Arc::new(w));
+        self.shell = Some(Arc::new(w));
         self
     }
     
@@ -158,9 +133,9 @@ impl SapperApp {
     }
     
     // add methods of this sapper module
-    pub fn add_module(&mut self, sm: Box<SModule>) -> &mut Self {
+    pub fn add_module(&mut self, sm: Box<SapperModule>) -> &mut Self {
         
-        let mut router = SRouter::new();
+        let mut router = SapperRouter::new();
         // get the sm router
         sm.router(&mut router).unwrap();
         let sm = Arc::new(sm);
@@ -172,35 +147,29 @@ impl SapperApp {
                 let glob = glob.clone();
                 let handler = handler.clone();
                 let sm = sm.clone();
-                // let sm = Box::new(sm);
-                let wrapper = self.wrapper.clone();
+                let shell = self.shell.clone();
                 let init_closure = self.init_closure.clone();
-                self.routers.route(method, glob, Arc::new(Box::new(move |req: &mut Request| -> Result<Response> {
-                    // if init_closure.is_some() {
-                    //     init_closure.unwrap()(req)?;
-                    // }
+                
+                self.routers.route(method, glob, Arc::new(Box::new(move |req: &mut SapperRequest| -> Result<SapperResponse> {
                     if let Some(ref c) = init_closure {
                         c(req)?; 
                     }
-                    if let Some(ref wrapper) = wrapper {
-                        wrapper.before(req)?;
+                    if let Some(ref shell) = shell {
+                        shell.before(req)?;
                     }
                     sm.before(req)?;
-                    let mut response: Response = handler.handle(req)?;
+                    let mut response: SapperResponse = handler.handle(req)?;
                     sm.after(req, &mut response)?;
-                    if let Some(ref wrapper) = wrapper {
-                        wrapper.after(req, &mut response)?;
+                    if let Some(ref shell) = shell {
+                        shell.after(req, &mut response)?;
                     }
                     Ok(response)
                 })));
             }
         }
-        
-        // self.modules.push(sm);
-        
+
         self
     }
-    
     
     pub fn run_http(self) {
         
@@ -209,7 +178,6 @@ impl SapperApp {
         
         let server = Http::new().bind(&addr, || Ok(self)).unwrap();
         server.run().unwrap();
-        
     }
 }
 

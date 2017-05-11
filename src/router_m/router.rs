@@ -5,13 +5,13 @@ use std::any::Any;
 use std::sync::Arc;
 
 
-use request::Request;
-use response::Response;
-use shandler::SHandler;
-use sapp::Result;
-use sapp::Error;
-use sapp::PathParams;
-use sapp::Key;
+use request::SapperRequest;
+use response::SapperResponse;
+use handler::SapperHandler;
+use app::Result;
+use app::Error;
+use app::PathParams;
+use app::Key;
 use hyper::{status, header};
 use hyper::method::Method;
 
@@ -26,18 +26,12 @@ impl Key for PathParams { type Value = Params; }
 /// for the Iron framework.
 pub struct Router {
     // The routers, specialized by method.
-    routers: HashMap<Method, Recognizer<Arc<Box<SHandler>>>>,
+    routers: HashMap<Method, Recognizer<Arc<Box<SapperHandler>>>>,
     // Routes that accept any method.
-    wildcard: Recognizer<Arc<Box<SHandler>>>
+    wildcard: Recognizer<Arc<Box<SapperHandler>>>
 }
 
 impl Router {
-    /// Construct a new, empty `Router`.
-    ///
-    /// ```ignore
-    /// # use router::Router;
-    /// let router = Router::new();
-    /// ```
     pub fn new() -> Router {
         Router {
             routers: HashMap::new(),
@@ -45,36 +39,8 @@ impl Router {
         }
     }
 
-    /// Add a new route to a `Router`, matching both a method and glob pattern.
-    ///
-    /// `route` supports glob patterns: `*` for a single wildcard segment and
-    /// `:param` for matching storing that segment of the request url in the `Params`
-    /// object, which is stored in the request `extensions`.
-    ///
-    /// For instance, to route `Get` requests on any route matching
-    /// `/users/:userid/:friend` and store `userid` and `friend` in
-    /// the exposed Params object:
-    ///
-    /// ```ignore
-    /// let mut router = Router::new();
-    /// router.route(method::Get, "/users/:userid/:friendid", controller);
-    /// ```
-    ///
-    /// The controller provided to route can be any `SHandler`, which allows
-    /// extreme flexibility when handling routes. For instance, you could provide
-    /// a `Chain`, a `SHandler`, which contains an authorization middleware and
-    /// a controller function, so that you can confirm that the request is
-    /// authorized for this route before handling it.
-    // pub fn route<H, S>(&mut self, method: Method,
-    //                    glob: S, handler: H) -> &mut Router
-    // where H: SHandler + 'static, S: AsRef<str> {
-    //     self.routers.entry(method).or_insert(Recognizer::new())
-    //                 // .add(glob.as_ref(), Box::new(handler));
-    //                 .add(glob.as_ref(), handler);
-    //     self
-    // }
     pub fn route<S>(&mut self, method: Method,
-                       glob: S, handler: Arc<Box<SHandler>>) -> &mut Router
+                       glob: S, handler: Arc<Box<SapperHandler>>) -> &mut Router
     where S: AsRef<str> {
         self.routers.entry(method).or_insert(Recognizer::new())
                     .add(glob.as_ref(), handler);
@@ -83,7 +49,7 @@ impl Router {
 
 
     fn recognize(&self, method: &Method, path: &str)
-                     -> Option<Match<&Arc<Box<SHandler>>>> {
+                     -> Option<Match<&Arc<Box<SapperHandler>>>> {
         self.routers.get(method).and_then(|router| router.recognize(path).ok())
             .or(self.wildcard.recognize(path).ok())
     }

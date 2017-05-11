@@ -1,12 +1,12 @@
+use std::collections::HashMap;
+use std::net::SocketAddr;
 
 use hyper::server::Request as HyperRequest;
 use hyper::method::Method;
 use hyper::header::Headers;
 use hyper::version::HttpVersion;
-use std::collections::HashMap;
-use std::net::SocketAddr;
-use typemap::TypeMap;
 use hyper::Body;
+use typemap::TypeMap;
 
 pub struct SapperRequest {
     raw_req: &HyperRequest,
