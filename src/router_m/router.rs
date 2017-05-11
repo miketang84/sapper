@@ -12,8 +12,7 @@ use app::Result;
 use app::Error;
 use app::PathParams;
 use app::Key;
-use hyper::{status, header};
-use hyper::method::Method;
+use hyper::{status, header, Method};
 
 
 use recognizer::Router as Recognizer;

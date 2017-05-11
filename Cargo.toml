@@ -13,3 +13,5 @@ route-recognizer = "*"
 typemap = "*"
 conduit-mime-types = "*"
 lazy_static = "*"
+futures = "*"
+

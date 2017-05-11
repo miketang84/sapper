@@ -5,9 +5,9 @@ use std::path::Path;
 use std::result::Result as StdResult;
 use std::error::Error as StdError;
 use std::sync::Arc;
-use std::marker::Reflect;
 use std::clone::Clone;
 
+use hyper;
 use hyper::{Get, Post, StatusCode};
 use hyper::header::{ContentLength, ContentType};
 
@@ -17,6 +17,7 @@ use hyper::server::Response as HyperResponse;
 use hyper::Method;
 use hyper::HttpVersion;
 
+use futures;
 use futures::future::FutureResult;
 use mime_types::Types as MimeTypes;
 
@@ -29,6 +30,7 @@ pub use request::SapperRequest;
 pub use response::SapperResponse;
 pub use router_m::Router;
 pub use router::SapperRouter;
+pub use handler::SapperHandler;
 
 
 #[derive(Clone)]
@@ -96,8 +98,8 @@ pub struct SapperApp {
 
 
 impl SapperApp {
-    pub fn new() -> SApp {
-        SApp {
+    pub fn new() -> SapperApp {
+        SapperApp {
             address: String::new(),
             port: 0,
             shell: None,
@@ -187,9 +189,9 @@ impl Service for SapperApp {
     type Request = HyperRequest;
     type Response = HyperResponse;
     type Error = hyper::Error;
-    type Future = FutureResult<Response, hyper::Error>;
+    type Future = FutureResult<Self::Response, hyper::Error>;
 
-    fn call(&self, req: Request) -> Self::Future {
+    fn call(&self, req: Self::Request) -> Self::Future {
         
         // make request from hyper request
         let mut sreq = SapperRequest::new(&req);

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::collections::HashMap;
-use hyper::method::Method;
+use hyper::Method;
 
 use handler::SapperHandler;
 

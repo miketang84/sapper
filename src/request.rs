@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 
 use hyper::server::Request as HyperRequest;
-use hyper::method::Method;
+use hyper::Method;
+use hyper::HttpVersion;
 use hyper::header::Headers;
-use hyper::version::HttpVersion;
 use hyper::Body;
 use typemap::TypeMap;
 
@@ -16,7 +16,7 @@ pub struct SapperRequest {
 impl SapperRequest {
     pub fn new(req: &HyperRequest) -> SapperRequest {
 
-        Request {
+        SapperRequest {
             raw_req: req,
             ext: TypeMap::new()
         }
