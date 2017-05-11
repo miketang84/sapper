@@ -81,7 +81,6 @@ pub type GlobalInitClosure = Box<Fn(&mut SapperRequest) -> Result<()> + 'static 
 pub type SapperAppShellType = Box<SapperAppShell + 'static + Send + Sync>;
 
 
-#[derive(Clone, Copy)]
 pub struct SapperApp {
     pub address:        String,
     pub port:           u32,
@@ -178,7 +177,10 @@ impl SapperApp {
         let addr = self.address.clone() + ":" + &self.port.to_string();
         //let arc_sapp = Arc::new(Box::new(self));
         
-        let server = Http::new().bind(&addr, || Ok(self)).unwrap();
+        let server = Http::new().bind(
+            &addr.parse().unwrap(), 
+            || Ok(self)
+        ).unwrap();
         server.run().unwrap();
     }
 }
@@ -194,15 +196,16 @@ impl Service for SapperApp {
     fn call(&self, req: Self::Request) -> Self::Future {
         
         // make request from hyper request
-        let mut sreq = SapperRequest::new(&req);
+//        let mut sreq = SapperRequest::new(&req);
+        let mut sreq = SapperRequest::new(Box::new(req));
 
         // pass req to routers, execute matched biz handler
-        let response = self.sapp.routers.handle_method(&mut sreq).unwrap();
+        let response = self.routers.handle_method(&mut sreq).unwrap();
         
         // here, if can not match any router, we need check static file service
         // or response NotFound
         
-        futures::future::ok(response)
+        futures::future::ok(response.unwrap())
         
     }
 }

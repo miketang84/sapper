@@ -4,7 +4,7 @@ use hyper::status::StatusCode;
 use hyper::header::Headers;
 
 
-#[derive(Default, Copy)]
+#[derive(Default)]
 pub struct SapperResponse {
     status: StatusCode,
     headers: Headers,

@@ -9,12 +9,13 @@ use hyper::Body;
 use typemap::TypeMap;
 
 pub struct SapperRequest {
-    raw_req: &HyperRequest,
+//    raw_req: &HyperRequest,
+    raw_req: Box<HyperRequest>,
     ext: TypeMap
 } 
 
 impl SapperRequest {
-    pub fn new(req: &HyperRequest) -> SapperRequest {
+    pub fn new(req: Box<HyperRequest>) -> SapperRequest {
 
         SapperRequest {
             raw_req: req,
