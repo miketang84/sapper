@@ -177,9 +177,11 @@ impl SapperApp {
         let addr = self.address.clone() + ":" + &self.port.to_string();
         //let arc_sapp = Arc::new(Box::new(self));
         
+        let self_box = Box::new(Arc::new(self));
+        
         let server = Http::new().bind(
             &addr.parse().unwrap(), 
-            || Ok(self)
+            || Ok(self_box)
         ).unwrap();
         server.run().unwrap();
     }
