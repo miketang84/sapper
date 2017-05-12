@@ -15,7 +15,7 @@ impl Biz {
     fn index(req: &mut Request) -> Result<Response> {
         
         let mut response = Response::new();
-        response.write_body("hello, boy!".to_string());
+        response.write_body("hello, world!".to_string());
         
         Ok(response)
     }

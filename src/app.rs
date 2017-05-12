@@ -187,7 +187,6 @@ impl SapperApp {
     }
 }
 
-static INDEX: &'static [u8] = b"hello world!";
 
 impl Service for SapperApp {
     type Request = HyperRequest;
@@ -203,16 +202,42 @@ impl Service for SapperApp {
 
         // pass req to routers, execute matched biz handler
         let response_w = self.routers.handle_method(&mut sreq).unwrap();
+        if response_w.is_err() {
+            // return 404 NotFound now
+            let response = Self::Response::new()
+                .with_status(StatusCode::NotFound);
+                
+            return futures::future::ok(response);
+        }
+        
         let sres = response_w.unwrap();
-        
-        let response = Self::Response::new()
-            .with_header(ContentLength(12u64))
-            .with_body(INDEX);
+        match sres.body_ref() {
+            &Some(ref vec) => {
+                // TODO: need to optimize for live time problem
+                let tvec = vec.clone();
+                let response = Self::Response::new()
+                    .with_header(ContentLength(vec.len() as u64))
+                    .with_body(tvec);
 
-        // here, if can not match any router, we need check static file service
-        // or response NotFound
+                // here, if can not match any router, we need check static file service
+                // or response NotFound
+                
+                futures::future::ok(response)
+            },
+            &None => {
+                let response = Self::Response::new()
+                    .with_body("".as_bytes());
+
+                // here, if can not match any router, we need check static file service
+                // or response NotFound
+                
+                futures::future::ok(response)
+            }
+            
+            
+        }
+
         
-        futures::future::ok(response)
         
     }
 }
