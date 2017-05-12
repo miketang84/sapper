@@ -177,17 +177,17 @@ impl SapperApp {
         let addr = self.address.clone() + ":" + &self.port.to_string();
         //let arc_sapp = Arc::new(Box::new(self));
         
-        let self_box = Box::new(Arc::new(self));
+        let self_box = Arc::new(Box::new(self));
         
         let server = Http::new().bind(
             &addr.parse().unwrap(), 
-            || Ok(self_box)
+            move || Ok(self_box.clone())
         ).unwrap();
         server.run().unwrap();
     }
 }
 
-
+static INDEX: &'static [u8] = b"hello world!";
 
 impl Service for SapperApp {
     type Request = HyperRequest;
@@ -202,12 +202,17 @@ impl Service for SapperApp {
         let mut sreq = SapperRequest::new(Box::new(req));
 
         // pass req to routers, execute matched biz handler
-        let response = self.routers.handle_method(&mut sreq).unwrap();
+        let response_w = self.routers.handle_method(&mut sreq).unwrap();
+        let sres = response_w.unwrap();
         
+        let response = Self::Response::new()
+            .with_header(ContentLength(12u64))
+            .with_body(INDEX);
+
         // here, if can not match any router, we need check static file service
         // or response NotFound
         
-        futures::future::ok(response.unwrap())
+        futures::future::ok(response)
         
     }
 }

@@ -100,8 +100,8 @@ impl Router {
     // }
 
     pub fn handle_method(&self, req: &mut SapperRequest) -> Option<Result<SapperResponse>> {
-        let path = req.path();
-        if let Some(matched) = self.recognize(req.method(), path) {
+        let path = req.path().to_owned();
+        if let Some(matched) = self.recognize(req.method(), &path) {
             req.ext_mut().insert::<PathParams>(matched.params);
             Some(matched.handler.handle(req))
         } else { 

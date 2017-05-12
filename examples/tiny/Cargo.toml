@@ -5,5 +5,5 @@ authors = ["Mike Tang <miketang84@outlook.com>"]
 
 [dependencies]
 sapper = { path="../../" }
-log = "0.3"
-env_logger = "0.3"
+log = "*"
+env_logger = "*"

@@ -1,9 +1,9 @@
 
 use sapper::Result;
-use sapper::SModule;
+use sapper::SapperModule;
 use sapper::Request;
 use sapper::Response;
-use sapper::SRouter;
+use sapper::SapperRouter;
 
 #[derive(Clone)]
 pub struct Foo;
@@ -28,7 +28,7 @@ impl Foo {
     
     fn test_post(req: &mut Request) -> Result<Response> {
         
-        println!("in test_post, raw_body: {:?}", req.raw_body());
+        println!("in test_post, raw_body: {:?}", req.body_ref());
         
         let mut response = Response::new();
         response.write_body("hello, I'am !".to_string());
@@ -39,10 +39,10 @@ impl Foo {
 }
 
 // set before, after middleware, and add routers
-impl SModule for Foo {
+impl SapperModule for Foo {
     
     // here add routers ....
-    fn router(&self, router: &mut SRouter) -> Result<()> {
+    fn router(&self, router: &mut SapperRouter) -> Result<()> {
         // need to use Router struct here
         // XXX: here could not write as this, should record first, not parse it now
         
