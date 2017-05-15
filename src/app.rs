@@ -1,21 +1,17 @@
 use std::str;
-use std::io::{self, Read, Write};
+use std::io::Read;
 use std::fs::File;
 use std::path::Path;
-use std::result::Result as StdResult;
-use std::error::Error as StdError;
 use std::sync::Arc;
 use std::clone::Clone;
 
 use hyper;
-use hyper::{Get, Post, StatusCode};
-use hyper::header::{ContentLength, ContentType};
+use hyper::StatusCode;
+use hyper::header::ContentLength;
 
 use hyper::server::{Http, Service};
 use hyper::server::Request as HyperRequest;
 use hyper::server::Response as HyperResponse;
-use hyper::Method;
-use hyper::HttpVersion;
 
 use futures;
 use futures::future::FutureResult;
@@ -233,7 +229,7 @@ impl Service for SapperApp {
         }
         
         let sres = response_w.unwrap();
-        match sres.body_ref() {
+        match sres.body() {
             &Some(ref vec) => {
                 let mut response = Self::Response::new();
                 

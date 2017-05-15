@@ -37,7 +37,7 @@ impl SapperResponse {
     }
     
     
-    pub fn body_ref(&self) -> &Option<Vec<u8>>{
+    pub fn body(&self) -> &Option<Vec<u8>>{
         &self.body
     }
     

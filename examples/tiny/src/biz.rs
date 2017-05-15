@@ -30,7 +30,7 @@ impl Biz {
     
     fn test_post(req: &mut Request) -> Result<Response> {
         
-        println!("in test_post, raw_body: {:?}", req.body_ref());
+        println!("in test_post, raw_body: {:?}", req.body());
         
         let mut response = Response::new();
         response.write_body("hello, I'am !".to_string());

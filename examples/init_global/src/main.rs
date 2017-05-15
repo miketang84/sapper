@@ -8,7 +8,7 @@ extern crate typemap;
 
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
-use sapper::{SApp, SAppWrapper, Request, Response, Result};
+use sapper::{SapperApp, SapperAppShell, Request, Response, Result};
 use typemap::Key;
 
 
@@ -20,28 +20,29 @@ use foo::Foo;
 
 #[derive(Clone)]
 struct MyApp;
+
 // must impl it
 // total entry and exitice
-impl SAppWrapper for MyApp {
+impl SapperAppShell for MyApp {
     fn before(&self, req: &mut Request) -> Result<()> {
-        println!("{}", "in SAppWrapper before.");
+        println!("{}", "in SapperAppShell before.");
         
         Ok(())
     }
     
     fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
-        println!("{}", "in SAppWrapper after.");
+        println!("{}", "in SapperAppShell after.");
         
         Ok(())
     }
 }
 
-pub struct AINT;
-impl Key for AINT { type Value = Arc<Box<usize>>; }
-pub struct AHashMap;
-impl Key for AHashMap { type Value = HashMap<&'static str, &'static str>; }
-pub struct AMutex;
-impl Key for AMutex { type Value = Arc<Mutex<HashMap<&'static str, &'static str>>>; }
+pub struct FOO_Int;
+impl Key for FOO_Int { type Value = Arc<Box<usize>>; }
+pub struct FOO_HashMap;
+impl Key for FOO_HashMap { type Value = HashMap<&'static str, &'static str>; }
+pub struct FOO_Mutex;
+impl Key for FOO_Mutex { type Value = Arc<Mutex<HashMap<&'static str, &'static str>>>; }
 
 
 pub fn main() {
@@ -56,22 +57,23 @@ pub fn main() {
     let a_mutex = Arc::new(Mutex::new(a_mutex));
     
     
-    let mut sapp = SApp::new();
+    let mut sapp = SapperApp::new();
     sapp.address("127.0.0.1")
         .port(1337)
         .init_global(Box::new(move |req: &mut Request| -> Result<()> {
-            println!("in init_global {:?}", req.query_string());
-            req.ext_mut().insert::<AINT>(a_global.clone());
-            req.ext_mut().insert::<AHashMap>(a_hash.clone());
-            req.ext_mut().insert::<AMutex>(a_mutex.clone());
+            println!("in init_global {:?}", req.query());
+            req.ext_mut().insert::<FOO_Int>(a_global.clone());
+            req.ext_mut().insert::<FOO_HashMap>(a_hash.clone());
+            req.ext_mut().insert::<FOO_Mutex>(a_mutex.clone());
             
             Ok(())
         }))
-        .with_wrapper(Box::new(MyApp))
+        .with_shell(Box::new(MyApp))
         .add_module(Box::new(Biz))
         .add_module(Box::new(Foo));
     
     println!("Listening on http://127.0.0.1:1337");
-    sapp.run();
+    sapp.run_http();
     
 }
+

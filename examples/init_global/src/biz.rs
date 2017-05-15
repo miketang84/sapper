@@ -1,16 +1,16 @@
 
 use sapper::Result;
-use sapper::SModule;
 use sapper::Request;
 use sapper::Response;
-use sapper::SRouter;
+use sapper::SapperModule;
+use sapper::SapperRouter;
 
 #[derive(Clone)]
 pub struct Biz;
 
-use AINT;
-use AHashMap;
-use AMutex;
+use FOO_Int;
+use FOO_HashMap;
+use FOO_Mutex;
 
 impl Biz {
     // those handlers in module Biz
@@ -23,11 +23,11 @@ impl Biz {
     }
     
     fn test(req: &mut Request) -> Result<Response> {
-        let a_global = req.ext().get::<AINT>();
+        let a_global = req.ext().get::<FOO_Int>();
         println!("in test, a_global is {:?}", a_global);
-        let a_hash = req.ext().get::<AHashMap>();
+        let a_hash = req.ext().get::<FOO_HashMap>();
         println!("in test, a_hash is {:?}", a_hash);
-        let a_mutex = req.ext().get::<AMutex>();
+        let a_mutex = req.ext().get::<FOO_Mutex>();
         println!("in test, a_mutex is {:?}", a_mutex);
         {
             let a_mutex = a_mutex.unwrap();
@@ -38,17 +38,17 @@ impl Biz {
         println!("in test, modified a_mutex is {:?}", a_mutex);
         
         let mut response = Response::new();
-        response.write_body("hello, tang gang gang!".to_string());
+        response.write_body("hello, test!".to_string());
         
         Ok(response)
     }
     
     fn test_post(req: &mut Request) -> Result<Response> {
         
-        println!("in test_post, raw_body: {:?}", req.raw_body());
+        println!("in test_post, raw_body: {:?}", req.body());
         
         let mut response = Response::new();
-        response.write_body("hello, I'am !".to_string());
+        response.write_body("hello, I'am post!".to_string());
         
         Ok(response)
     }
@@ -56,7 +56,7 @@ impl Biz {
 }
 
 // set before, after middleware, and add routers
-impl SModule for Biz {
+impl SapperModule for Biz {
     
     fn before(&self, req: &mut Request) -> Result<()> {
         println!("{}", "in Biz before.");
@@ -70,7 +70,7 @@ impl SModule for Biz {
     }
     
     // here add routers ....
-    fn router(&self, router: &mut SRouter) -> Result<()> {
+    fn router(&self, router: &mut SapperRouter) -> Result<()> {
         // need to use Router struct here
         // XXX: here could not write as this, should record first, not parse it now
         

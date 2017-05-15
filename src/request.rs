@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::net::SocketAddr;
 
 use hyper::server::Request as HyperRequest;
@@ -47,7 +46,7 @@ impl SapperRequest {
         self.raw_req.query()
     }
     
-    pub fn body_ref(&self) -> Option<&Body> {
+    pub fn body(&self) -> Option<&Body> {
         self.raw_req.body_ref()
     }
     

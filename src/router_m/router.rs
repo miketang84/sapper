@@ -1,7 +1,4 @@
 use std::collections::HashMap;
-use std::error::Error as StdError;
-use std::fmt;
-use std::any::Any;
 use std::sync::Arc;
 
 
@@ -12,8 +9,7 @@ use app::Result;
 use app::Error;
 use app::PathParams;
 use app::Key;
-use hyper::{status, header, Method};
-
+use hyper::Method;
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
