@@ -235,12 +235,19 @@ impl Service for SapperApp {
         let sres = response_w.unwrap();
         match sres.body_ref() {
             &Some(ref vec) => {
+                let mut response = Self::Response::new();
+                
+                for header in sres.headers().iter() {
+                    response.headers_mut()
+                        .set_raw(header.name().to_owned(), 
+                            vec![header.value_string().as_bytes().to_vec()]);
+                }
+                
+                response.headers_mut().set(ContentLength(vec.len() as u64));
                 // TODO: need to optimize for live time problem
                 let tvec = vec.clone();
-                // TODO: need copy all headers from SapperResponse
-                let response = Self::Response::new()
-                    .with_header(ContentLength(vec.len() as u64))
-                    .with_body(tvec);
+                
+                response.set_body(tvec);
 
                 // here, if can not match any router, we need check static file service
                 // or response NotFound
