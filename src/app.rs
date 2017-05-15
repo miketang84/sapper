@@ -195,7 +195,7 @@ impl Service for SapperApp {
     type Future = FutureResult<Self::Response, hyper::Error>;
 
     fn call(&self, req: Self::Request) -> Self::Future {
-        
+
         // make request from hyper request
 //        let mut sreq = SapperRequest::new(&req);
         let mut sreq = SapperRequest::new(Box::new(req));
@@ -203,6 +203,28 @@ impl Service for SapperApp {
         // pass req to routers, execute matched biz handler
         let response_w = self.routers.handle_method(&mut sreq).unwrap();
         if response_w.is_err() {
+            let path = sreq.path();
+            if self.static_service {
+                match simple_file_get(path) {
+                    Ok((file_u8vec, file_mime)) => {
+                        let mut response = Self::Response::new()
+                            .with_header(ContentLength(file_u8vec.len() as u64));
+                            
+                        response.headers_mut().set_raw("Content-Type", vec![file_mime.as_bytes().to_vec()]);
+                        response.set_body(file_u8vec);
+                        
+                        return futures::future::ok(response);
+                    },
+                    Err(_) => {
+                        // return 404 NotFound now
+                        let response = Self::Response::new()
+                            .with_status(StatusCode::NotFound);
+                            
+                        return futures::future::ok(response);
+                    }
+                }
+            }
+        
             // return 404 NotFound now
             let response = Self::Response::new()
                 .with_status(StatusCode::NotFound);
@@ -215,6 +237,7 @@ impl Service for SapperApp {
             &Some(ref vec) => {
                 // TODO: need to optimize for live time problem
                 let tvec = vec.clone();
+                // TODO: need copy all headers from SapperResponse
                 let response = Self::Response::new()
                     .with_header(ContentLength(vec.len() as u64))
                     .with_body(tvec);
@@ -233,12 +256,7 @@ impl Service for SapperApp {
                 
                 futures::future::ok(response)
             }
-            
-            
         }
-
-        
-        
     }
 }
 
