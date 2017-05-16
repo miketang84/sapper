@@ -6,6 +6,7 @@ use sapper::Response;
 use sapper::SapperRouter;
 
 use std::str;
+use sapper::Stream;
 
 #[derive(Clone)]
 pub struct Biz;
@@ -31,9 +32,17 @@ impl Biz {
     fn test_post(req: &mut Request) -> Result<Response> {
         
         println!("in test_post, raw_body: {:?}", req.body());
-	req.body().collect(move |chunk| {
-        	println!("in body, {:?}", chunk);
-	}).boxed();
+        match req.body() {
+            Some(& ref body) => {
+                body.for_each(|chunk| {
+                    println!("in body, {:?}", chunk);
+                    Ok(())
+                });
+            },
+            None => {
+            
+            }
+        }
         
         let mut response = Response::new();
         response.write_body("hello, I'am post!".to_string());
