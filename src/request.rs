@@ -7,14 +7,14 @@ use hyper::header::Headers;
 use hyper::Body;
 use typemap::TypeMap;
 
-pub struct SapperRequest {
+pub struct SapperRequest<B = Body> {
 //    raw_req: &HyperRequest,
-    raw_req: Box<HyperRequest>,
+    raw_req: Box<HyperRequest<B>>,
     ext: TypeMap
 } 
 
-impl SapperRequest {
-    pub fn new(req: Box<HyperRequest>) -> SapperRequest {
+impl<B> SapperRequest<B> {
+    pub fn new(req: Box<HyperRequest<B>>) -> SapperRequest<B> {
 
         SapperRequest {
             raw_req: req,
@@ -46,7 +46,7 @@ impl SapperRequest {
         self.raw_req.query()
     }
     
-    pub fn body(&self) -> Option<&Body> {
+    pub fn body(&self) -> Option<&B> {
         self.raw_req.body_ref()
     }
     

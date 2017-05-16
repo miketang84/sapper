@@ -31,9 +31,9 @@ impl Biz {
     fn test_post(req: &mut Request) -> Result<Response> {
         
         println!("in test_post, raw_body: {:?}", req.body());
-	//req.body().collect(move |chunk| {
-        //	println!("in body, {:?}", chunk);
-	//});
+	req.body().collect(move |chunk| {
+        	println!("in body, {:?}", chunk);
+	}).boxed();
         
         let mut response = Response::new();
         response.write_body("hello, I'am post!".to_string());
