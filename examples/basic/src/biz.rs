@@ -4,9 +4,13 @@ use sapper::SapperModule;
 use sapper::Request;
 use sapper::Response;
 use sapper::SapperRouter;
+use sapper::Error;
+use sapper::HyperError;
 
 use std::str;
 use sapper::Stream;
+use sapper::Future;
+use sapper::ok;
 
 #[derive(Clone)]
 pub struct Biz;
@@ -30,24 +34,37 @@ impl Biz {
     }
     
     fn test_post(req: &mut Request) -> Result<Response> {
+        //let (method, uri, _version, headers, body) = req.deconstruct();
         
-        println!("in test_post, raw_body: {:?}", req.body());
-        match req.body() {
-            Some(& ref body) => {
-                body.for_each(|chunk| {
-                    println!("in body, {:?}", chunk);
-                    Ok(())
-                });
-            },
-            None => {
+        req.body()
+            .fold(Vec::new(), |mut acc, chunk| {
+                acc.extend_from_slice(&*chunk);
+                Ok::<_, HyperError>(acc)
+            })
+            .map(move |body| {
+                Ok::<_, HyperError>(Response::new()
+                    .write_body(format!("Read {} bytes", body.len())))
+            }).boxed()
+
+                
+        //println!("in test_post, raw_body: {:?}", req.body());
+        //match req.body() {
+        //    Some(& ref body) => {
+        //        println!("in test_post, body: {:?}", body);
+                //body.for_each(|chunk| {
+                //    println!("in body, {:?}", chunk);
+                //    Ok(())
+                //});
+        //    },
+        //    None => {
             
-            }
-        }
+        //    }
+        //}
         
-        let mut response = Response::new();
-        response.write_body("hello, I'am post!".to_string());
+        //let mut response = Response::new();
+        //response.write_body("hello, I'am post!".to_string());
         
-        Ok(response)
+        //Ok(response)
     }
 }
 

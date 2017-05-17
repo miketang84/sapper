@@ -46,7 +46,7 @@ impl<B> SapperRequest<B> {
         self.raw_req.query()
     }
     
-    pub fn body(&self) -> Option<&B> {
+    pub fn body_ref(&self) -> Option<&B> {
         self.raw_req.body_ref()
     }
     
@@ -58,4 +58,11 @@ impl<B> SapperRequest<B> {
         &mut self.ext
     }
 }
+
+impl SapperRequest<Body> {
+    pub fn body(self) -> Body {
+        self.raw_req.body()
+    }
+}
+
 

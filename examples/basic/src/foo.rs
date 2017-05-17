@@ -28,7 +28,7 @@ impl Foo {
     
     fn test_post(req: &mut Request) -> Result<Response> {
         
-        println!("in test_post, raw_body: {:?}", req.body());
+        println!("in test_post, raw_body: {:?}", req.body_ref());
         
         let mut response = Response::new();
         response.write_body("hello, I'am !".to_string());

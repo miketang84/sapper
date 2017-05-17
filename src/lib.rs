@@ -31,4 +31,6 @@ pub use app::PathParams;
 
 pub use hyper::Body;
 pub use futures::{Future, Stream};
+pub use futures::future::ok;
+pub use hyper::Error as HyperError;
 
