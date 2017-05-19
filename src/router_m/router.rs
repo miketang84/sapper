@@ -9,6 +9,7 @@ use app::Result;
 use app::Error;
 use app::PathParams;
 use app::Key;
+use app::err;
 use hyper::Method;
 
 use recognizer::Router as Recognizer;
@@ -103,7 +104,7 @@ impl Router {
         } else { 
             // panic!("router not matched!");
             // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
-            Some(Err(Error::NotFound(path.to_owned()))) 
+            Some(err(Error::NotFound(path.to_owned()))) 
         }
     }
 }

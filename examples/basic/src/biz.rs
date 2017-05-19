@@ -36,6 +36,14 @@ impl Biz {
     fn test_post(req: &mut Request) -> Result<Response> {
         //let (method, uri, _version, headers, body) = req.deconstruct();
         
+        //let a = req.body().wait().unwrap();
+        //println!("in test_post, raw_body: {:?}", a);
+        
+        for ref chunk in req.body().wait() {
+            println!("in test_post, raw_body: {:?}", chunk);
+        
+        }
+/*
         req.body()
             .fold(Vec::new(), |mut acc, chunk| {
                 acc.extend_from_slice(&*chunk);
@@ -45,7 +53,7 @@ impl Biz {
                 Ok::<_, HyperError>(Response::new()
                     .write_body(format!("Read {} bytes", body.len())))
             }).boxed()
-
+*/
                 
         //println!("in test_post, raw_body: {:?}", req.body());
         //match req.body() {
@@ -61,10 +69,10 @@ impl Biz {
         //    }
         //}
         
-        //let mut response = Response::new();
-        //response.write_body("hello, I'am post!".to_string());
+        let mut response = Response::new();
+        response.write_body("hello, I'am post!".to_string());
         
-        //Ok(response)
+        Ok(response)
     }
 }
 

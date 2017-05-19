@@ -14,10 +14,12 @@ use hyper::server::Request as HyperRequest;
 use hyper::server::Response as HyperResponse;
 
 use futures;
+use futures::Future;
 use futures::future::FutureResult;
+
 use mime_types::Types as MimeTypes;
 
-
+pub use futures::future::{ok, err};
 pub use typemap::Key;
 pub use hyper::header::Headers;
 pub use hyper::header;
@@ -47,20 +49,23 @@ pub enum Error {
     InvalidRouterConfig,
     FileNotExist,
     ShouldRedirect(String),
+    Break(String),
     Fatal(String),
     Custom(String),
 }
-pub type Result<T> = ::std::result::Result<T, Error>; 
+
+pub type StdResult<T> = ::std::result::Result<T, Error>; 
+pub type Result<T> = FutureResult<T, Error>; 
 
 
 
 pub trait SapperModule: Sync + Send {
     fn before(&self, req: &mut SapperRequest) -> Result<()> {
-        Ok(())
+        ok(())
     }
     
     fn after(&self, req: &SapperRequest, res: &mut SapperResponse) -> Result<()> {
-        Ok(())
+        ok(())
     }
     
     fn router(&self, &mut SapperRouter) -> Result<()>;
@@ -133,7 +138,7 @@ impl SapperApp {
         
         let mut router = SapperRouter::new();
         // get the sm router
-        sm.router(&mut router).unwrap();
+        sm.router(&mut router).wait().unwrap();
         let sm = Arc::new(sm);
         
         for (method, handler_vec) in router.into_router() {
@@ -148,18 +153,37 @@ impl SapperApp {
                 
                 self.routers.route(method, glob, Arc::new(Box::new(move |req: &mut SapperRequest| -> Result<SapperResponse> {
                     if let Some(ref c) = init_closure {
-                        c(req)?; 
+                        if c(req).wait().is_err() {
+                            return err(Error::Break("Break in init closure.".to_owned()));
+                        }
                     }
                     if let Some(ref shell) = shell {
-                        shell.before(req)?;
+                        //shell.before(req).wait().unwrap();
+                        if shell.before(req).wait().is_err() {
+                            return err(Error::Break("Break in shell before.".to_owned()));
+                        }
                     }
-                    sm.before(req)?;
-                    let mut response: SapperResponse = handler.handle(req)?;
-                    sm.after(req, &mut response)?;
+                    if sm.before(req).wait().is_err() {
+                        return err(Error::Break("Break in module before.".to_owned()));
+                    }
+                    let mut response: SapperResponse = match handler.handle(req).wait() {
+                        Ok(res) => {
+                            res
+                        },
+                        Err(_) => {
+                            return err(Error::Break("Break in handler.".to_owned()));
+                        }
+                    };
+                    
+                    if sm.after(req, &mut response).wait().is_err() {
+                        return err(Error::Break("Break in module after.".to_owned()));
+                    }
                     if let Some(ref shell) = shell {
-                        shell.after(req, &mut response)?;
+                        if shell.after(req, &mut response).wait().is_err() {
+                            return err(Error::Break("Break in shell after.".to_owned()));
+                        }
                     }
-                    Ok(response)
+                    ok(response)
                 })));
             }
         }
@@ -196,8 +220,8 @@ impl Service for SapperApp {
         let mut sreq = SapperRequest::new(Box::new(req));
 
         // pass req to routers, execute matched biz handler
-        let response_w = self.routers.handle_method(&mut sreq).unwrap();
-        if response_w.is_err() {
+        let response_w = self.routers.handle_method(&mut sreq).wait().unwrap();
+        if response_w.is_none() {
             let path = sreq.path();
             if self.static_service {
                 match simple_file_get(path) {
@@ -208,14 +232,14 @@ impl Service for SapperApp {
                         response.headers_mut().set_raw("Content-Type", vec![file_mime.as_bytes().to_vec()]);
                         response.set_body(file_u8vec);
                         
-                        return futures::future::ok(response);
+                        return ok(response);
                     },
                     Err(_) => {
                         // return 404 NotFound now
                         let response = Self::Response::new()
                             .with_status(StatusCode::NotFound);
                             
-                        return futures::future::ok(response);
+                        return ok(response);
                     }
                 }
             }
@@ -224,7 +248,7 @@ impl Service for SapperApp {
             let response = Self::Response::new()
                 .with_status(StatusCode::NotFound);
                 
-            return futures::future::ok(response);
+            return ok(response);
         }
         
         let sres = response_w.unwrap();
@@ -247,7 +271,7 @@ impl Service for SapperApp {
                 // here, if can not match any router, we need check static file service
                 // or response NotFound
                 
-                futures::future::ok(response)
+                ok(response)
             },
             &None => {
                 let response = Self::Response::new()
@@ -256,7 +280,7 @@ impl Service for SapperApp {
                 // here, if can not match any router, we need check static file service
                 // or response NotFound
                 
-                futures::future::ok(response)
+                ok(response)
             }
         }
     }
@@ -271,7 +295,7 @@ lazy_static! {
     static ref MTYPES: MimeTypes = { MimeTypes::new().unwrap() };
 }
 
-fn simple_file_get(path: &str) -> Result<(Vec<u8>, String)> {
+fn simple_file_get(path: &str) -> StdResult<(Vec<u8>, String)> {
     let new_path;
     if &path[(path.len()-1)..] == "/" {
         new_path = "static/".to_owned() + path + "index.html";
