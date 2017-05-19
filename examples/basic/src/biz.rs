@@ -10,7 +10,7 @@ use sapper::HyperError;
 use std::str;
 use sapper::Stream;
 use sapper::Future;
-use sapper::ok;
+use sapper::{ok, err};
 
 #[derive(Clone)]
 pub struct Biz;
@@ -22,7 +22,7 @@ impl Biz {
         let mut response = Response::new();
         response.write_body("hello, boy!".to_string());
         
-        Ok(response)
+        ok(response)
     }
     
     fn test(req: &mut Request) -> Result<Response> {
@@ -30,7 +30,7 @@ impl Biz {
         let mut response = Response::new();
         response.write_body("hello, test!".to_string());
         
-        Ok(response)
+        ok(response)
     }
     
     fn test_post(req: &mut Request) -> Result<Response> {
@@ -38,41 +38,25 @@ impl Biz {
         
         //let a = req.body().wait().unwrap();
         //println!("in test_post, raw_body: {:?}", a);
+
+        let mut res = Response::new();
         
-        for ref chunk in req.body().wait() {
-            println!("in test_post, raw_body: {:?}", chunk);
-        
-        }
-/*
         req.body()
             .fold(Vec::new(), |mut acc, chunk| {
                 acc.extend_from_slice(&*chunk);
-                Ok::<_, HyperError>(acc)
+                ok::<_, HyperError>(acc)
             })
             .map(move |body| {
-                Ok::<_, HyperError>(Response::new()
-                    .write_body(format!("Read {} bytes", body.len())))
-            }).boxed()
-*/
+                println!("{:?}", body);
+                //res.write_body(format!("Read {} bytes", body.len()));
                 
-        //println!("in test_post, raw_body: {:?}", req.body());
-        //match req.body() {
-        //    Some(& ref body) => {
-        //        println!("in test_post, body: {:?}", body);
-                //body.for_each(|chunk| {
-                //    println!("in body, {:?}", chunk);
-                //    Ok(())
-                //});
-        //    },
-        //    None => {
-            
-        //    }
-        //}
+                ok::<Response, Error>(res)
+            })
+
+        //let mut response = Response::new();
+        //response.write_body("hello, I'am post!".to_string());
         
-        let mut response = Response::new();
-        response.write_body("hello, I'am post!".to_string());
-        
-        Ok(response)
+        //ok(response)
     }
 }
 
@@ -81,13 +65,13 @@ impl SapperModule for Biz {
     
     fn before(&self, req: &mut Request) -> Result<()> {
         println!("{}", "in Biz before.");
-        Ok(())
+        ok(())
     }
     
     fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
         println!("{}", "in Biz after.");
         
-        Ok(())
+        ok(())
     }
     
     // here add routers ....
@@ -99,7 +83,7 @@ impl SapperModule for Biz {
         router.get("/test", Biz::test);
         router.post("/test", Biz::test_post);
         
-        Ok(())
+        ok(())
         
     }
     

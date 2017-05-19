@@ -5,6 +5,8 @@ use sapper::Request;
 use sapper::Response;
 use sapper::SapperRouter;
 
+use sapper::{ok, err};
+
 #[derive(Clone)]
 pub struct Foo;
 
@@ -15,7 +17,7 @@ impl Foo {
         let mut response = Response::new();
         response.write_body("hello, boy!".to_string());
         
-        Ok(response)
+        ok(response)
     }
     
     fn test(req: &mut Request) -> Result<Response> {
@@ -23,7 +25,7 @@ impl Foo {
         let mut response = Response::new();
         response.write_body("hello, test!".to_string());
         
-        Ok(response)
+        ok(response)
     }
     
     fn test_post(req: &mut Request) -> Result<Response> {
@@ -33,7 +35,7 @@ impl Foo {
         let mut response = Response::new();
         response.write_body("hello, I'am !".to_string());
         
-        Ok(response)
+        ok(response)
     }
     
 }
@@ -43,13 +45,13 @@ impl SapperModule for Foo {
     
     fn before(&self, req: &mut Request) -> Result<()> {
         println!("{}", "in Foo before.");
-        Ok(())
+        ok(())
     }
     
     fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
         println!("{}", "in Foo after.");
         
-        Ok(())
+        ok(())
     }
     
     // here add routers ....
@@ -61,7 +63,7 @@ impl SapperModule for Foo {
         router.get("/foo/test", Foo::test);
         router.post("/foo/test", Foo::test_post);
         
-        Ok(())
+        ok(())
         
     }
     

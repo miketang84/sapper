@@ -6,7 +6,7 @@ extern crate env_logger;
 extern crate log;
 
 use sapper::{SapperApp, SapperAppShell, Request, Response, Result};
-
+use sapper::{ok, err};
 
 
 mod biz;
@@ -22,13 +22,13 @@ impl SapperAppShell for MyApp {
     fn before(&self, req: &mut Request) -> Result<()> {
         println!("{}", "in SapperAppShell before.");
         
-        Ok(())
+        ok(())
     }
     
     fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
         println!("{}", "in SapperAppShell after.");
         
-        Ok(())
+        ok(())
     }
 }
 
@@ -36,10 +36,6 @@ impl SapperAppShell for MyApp {
 
 pub fn main() {
     env_logger::init().unwrap();
-    
-    // fn init_global(req: &mut Request) -> Result<()> {
-    //     Ok(())
-    // }
     
     let mut sapp = SapperApp::new();
     sapp.address("127.0.0.1")
