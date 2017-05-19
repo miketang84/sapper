@@ -6,6 +6,7 @@ use request::SapperRequest;
 use response::SapperResponse;
 use handler::SapperHandler;
 use app::Result;
+use app::BoxFutureResult;
 use app::Error;
 use app::PathParams;
 use app::Key;
@@ -96,7 +97,7 @@ impl Router {
     //     )
     // }
 
-    pub fn handle_method(&self, req: &mut SapperRequest) -> Option<Result<SapperResponse>> {
+    pub fn handle_method(&self, req: &mut SapperRequest) -> Option<BoxFutureResult<SapperResponse>> {
         let path = req.path().to_owned();
         if let Some(matched) = self.recognize(req.method(), &path) {
             req.ext_mut().insert::<PathParams>(matched.params);

@@ -15,7 +15,7 @@ use hyper::server::Response as HyperResponse;
 
 use futures;
 use futures::Future;
-use futures::future::FutureResult;
+use futures::future::{BoxFuture, FutureResult};
 
 use mime_types::Types as MimeTypes;
 
@@ -56,7 +56,7 @@ pub enum Error {
 
 pub type StdResult<T> = ::std::result::Result<T, Error>; 
 pub type Result<T> = FutureResult<T, Error>; 
-
+pub type BoxFutureResult<T> = BoxFuture<T, Error>; 
 
 
 pub trait SapperModule: Sync + Send {
@@ -211,7 +211,7 @@ impl Service for SapperApp {
     type Request = HyperRequest;
     type Response = HyperResponse;
     type Error = hyper::Error;
-    type Future = FutureResult<Self::Response, hyper::Error>;
+    type Future = BoxFuture<Self::Response, hyper::Error>;
 
     fn call(&self, req: Self::Request) -> Self::Future {
 
@@ -220,6 +220,15 @@ impl Service for SapperApp {
         let mut sreq = SapperRequest::new(Box::new(req));
 
         // pass req to routers, execute matched biz handler
+        self.routers.handle_method(&mut sreq).map(move |response_w| {
+            response_w.map(move |sres| {
+                
+                
+            
+            });
+        })
+        
+        
         let response_w = self.routers.handle_method(&mut sreq).wait().unwrap();
         if response_w.is_none() {
             let path = sreq.path();
@@ -232,14 +241,14 @@ impl Service for SapperApp {
                         response.headers_mut().set_raw("Content-Type", vec![file_mime.as_bytes().to_vec()]);
                         response.set_body(file_u8vec);
                         
-                        return ok(response);
+                        return ok(response).boxed();
                     },
                     Err(_) => {
                         // return 404 NotFound now
                         let response = Self::Response::new()
                             .with_status(StatusCode::NotFound);
                             
-                        return ok(response);
+                        return ok(response).boxed();
                     }
                 }
             }
@@ -248,7 +257,7 @@ impl Service for SapperApp {
             let response = Self::Response::new()
                 .with_status(StatusCode::NotFound);
                 
-            return ok(response);
+            return ok(response).boxed();
         }
         
         let sres = response_w.unwrap();
@@ -271,7 +280,7 @@ impl Service for SapperApp {
                 // here, if can not match any router, we need check static file service
                 // or response NotFound
                 
-                ok(response)
+                ok(response).boxed()
             },
             &None => {
                 let response = Self::Response::new()
@@ -280,7 +289,7 @@ impl Service for SapperApp {
                 // here, if can not match any router, we need check static file service
                 // or response NotFound
                 
-                ok(response)
+                ok(response).boxed()
             }
         }
     }
