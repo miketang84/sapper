@@ -8,9 +8,9 @@ use sapper::SapperRouter;
 #[derive(Clone)]
 pub struct Biz;
 
-use FOO_Int;
-use FOO_HashMap;
-use FOO_Mutex;
+use FOOInt;
+use FOOHashMap;
+use FOOMutex;
 
 impl Biz {
     // those handlers in module Biz
@@ -23,11 +23,11 @@ impl Biz {
     }
     
     fn test(req: &mut Request) -> Result<Response> {
-        let a_global = req.ext().get::<FOO_Int>();
+        let a_global = req.ext().get::<FOOInt>();
         println!("in test, a_global is {:?}", a_global);
-        let a_hash = req.ext().get::<FOO_HashMap>();
+        let a_hash = req.ext().get::<FOOHashMap>();
         println!("in test, a_hash is {:?}", a_hash);
-        let a_mutex = req.ext().get::<FOO_Mutex>();
+        let a_mutex = req.ext().get::<FOOMutex>();
         println!("in test, a_mutex is {:?}", a_mutex);
         {
             let a_mutex = a_mutex.unwrap();

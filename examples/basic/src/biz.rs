@@ -6,7 +6,6 @@ use sapper::Response;
 use sapper::SapperRouter;
 
 use std::str;
-use sapper::Stream;
 
 #[derive(Clone)]
 pub struct Biz;

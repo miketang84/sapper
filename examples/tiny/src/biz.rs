@@ -23,7 +23,7 @@ impl Biz {
     fn test(req: &mut Request) -> Result<Response> {
         
         let mut response = Response::new();
-        response.write_body("hello, tang gang gang!".to_string());
+        response.write_body("hello, test!".to_string());
         
         Ok(response)
     }
@@ -33,7 +33,7 @@ impl Biz {
         println!("in test_post, raw_body: {:?}", req.body());
         
         let mut response = Response::new();
-        response.write_body("hello, I'am !".to_string());
+        response.write_body("hello, I'am post!".to_string());
         
         Ok(response)
     }

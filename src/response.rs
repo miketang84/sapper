@@ -1,10 +1,7 @@
-use std::default::Default;
-
 use hyper::status::StatusCode;
 use hyper::header::Headers;
 
 
-#[derive(Default)]
 pub struct SapperResponse {
     status: StatusCode,
     headers: Headers,
@@ -14,9 +11,11 @@ pub struct SapperResponse {
 
 impl SapperResponse {
     pub fn new() -> SapperResponse {
-        let res: SapperResponse = Default::default();
-        
-        res
+        SapperResponse {
+            status: StatusCode::Ok,
+            headers: Headers::new(),
+            body: None
+        }
     }
     
     pub fn status(&self) -> StatusCode {

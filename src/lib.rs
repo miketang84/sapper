@@ -9,7 +9,6 @@ extern crate hyper;
 extern crate typemap;
 extern crate route_recognizer as recognizer;
 extern crate conduit_mime_types as mime_types;
-extern crate futures;
 
 mod request;
 mod response;
@@ -29,6 +28,4 @@ pub use app::{Result, Error, Key};
 pub use app::{header, status, mime};
 pub use app::PathParams;
 
-pub use hyper::Body;
-pub use futures::{Future, Stream};
 

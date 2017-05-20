@@ -37,12 +37,12 @@ impl SapperAppShell for MyApp {
     }
 }
 
-pub struct FOO_Int;
-impl Key for FOO_Int { type Value = Arc<Box<usize>>; }
-pub struct FOO_HashMap;
-impl Key for FOO_HashMap { type Value = HashMap<&'static str, &'static str>; }
-pub struct FOO_Mutex;
-impl Key for FOO_Mutex { type Value = Arc<Mutex<HashMap<&'static str, &'static str>>>; }
+pub struct FOOInt;
+impl Key for FOOInt { type Value = Arc<Box<usize>>; }
+pub struct FOOHashMap;
+impl Key for FOOHashMap { type Value = HashMap<&'static str, &'static str>; }
+pub struct FOOMutex;
+impl Key for FOOMutex { type Value = Arc<Mutex<HashMap<&'static str, &'static str>>>; }
 
 
 pub fn main() {
@@ -61,10 +61,10 @@ pub fn main() {
     sapp.address("127.0.0.1")
         .port(1337)
         .init_global(Box::new(move |req: &mut Request| -> Result<()> {
-            println!("in init_global {:?}", req.query());
-            req.ext_mut().insert::<FOO_Int>(a_global.clone());
-            req.ext_mut().insert::<FOO_HashMap>(a_hash.clone());
-            req.ext_mut().insert::<FOO_Mutex>(a_mutex.clone());
+            println!("in init_global {:?}", req.uri());
+            req.ext_mut().insert::<FOOInt>(a_global.clone());
+            req.ext_mut().insert::<FOOHashMap>(a_hash.clone());
+            req.ext_mut().insert::<FOOMutex>(a_mutex.clone());
             
             Ok(())
         }))

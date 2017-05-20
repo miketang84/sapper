@@ -5,16 +5,8 @@ use std::path::Path;
 use std::sync::Arc;
 use std::clone::Clone;
 
-use hyper;
-use hyper::StatusCode;
-use hyper::header::ContentLength;
-
-use hyper::server::{Http, Service};
-use hyper::server::Request as HyperRequest;
-use hyper::server::Response as HyperResponse;
-
-use futures;
-use futures::future::FutureResult;
+use hyper::status::StatusCode;
+use hyper::server::{Handler, Server, Request, Response};
 use mime_types::Types as MimeTypes;
 
 
@@ -47,11 +39,13 @@ pub enum Error {
     InvalidRouterConfig,
     FileNotExist,
     ShouldRedirect(String),
+    Break(String),
     Fatal(String),
     Custom(String),
 }
-pub type Result<T> = ::std::result::Result<T, Error>; 
 
+
+pub type Result<T> = ::std::result::Result<T, Error>; 
 
 
 pub trait SapperModule: Sync + Send {
@@ -170,96 +164,63 @@ impl SapperApp {
     pub fn run_http(self) {
         
         let addr = self.address.clone() + ":" + &self.port.to_string();
-        //let arc_sapp = Arc::new(Box::new(self));
-        
-        let self_box = Arc::new(Box::new(self));
-        
-        let server = Http::new().bind(
-            &addr.parse().unwrap(), 
-            move || Ok(self_box.clone())
-        ).unwrap();
-        server.run().unwrap();
+        //let self_box = Arc::new(Box::new(self));
+
+        Server::http(&addr[..]).unwrap()
+                .handle(self).unwrap();
+       
     }
 }
 
 
-impl Service for SapperApp {
-    type Request = HyperRequest;
-    type Response = HyperResponse;
-    type Error = hyper::Error;
-    type Future = FutureResult<Self::Response, hyper::Error>;
+impl Handler for SapperApp {
 
-    fn call(&self, req: Self::Request) -> Self::Future {
-
-        // make request from hyper request
-//        let mut sreq = SapperRequest::new(&req);
+    fn handle(&self, req: Request, mut res: Response) {
+        
         let mut sreq = SapperRequest::new(Box::new(req));
+        let (path, query) = sreq.uri();
 
         // pass req to routers, execute matched biz handler
-        let response_w = self.routers.handle_method(&mut sreq).unwrap();
+        let response_w = self.routers.handle_method(&mut sreq, &path).unwrap();
         if response_w.is_err() {
-            let path = sreq.path();
+            
             if self.static_service {
-                match simple_file_get(path) {
+                match simple_file_get(&path) {
                     Ok((file_u8vec, file_mime)) => {
-                        let mut response = Self::Response::new()
-                            .with_header(ContentLength(file_u8vec.len() as u64));
-                            
-                        response.headers_mut().set_raw("Content-Type", vec![file_mime.as_bytes().to_vec()]);
-                        response.set_body(file_u8vec);
+                        res.headers_mut().set_raw("Content-Type", vec![file_mime.as_bytes().to_vec()]);
                         
-                        return futures::future::ok(response);
+                        return res.send(&file_u8vec[..]).unwrap();
                     },
                     Err(_) => {
-                        // return 404 NotFound now
-                        let response = Self::Response::new()
-                            .with_status(StatusCode::NotFound);
-                            
-                        return futures::future::ok(response);
+                        return res.send(&"".as_bytes()).unwrap();
                     }
                 }
             }
         
             // return 404 NotFound now
-            let response = Self::Response::new()
-                .with_status(StatusCode::NotFound);
-                
-            return futures::future::ok(response);
+            *res.status_mut() = StatusCode::NotFound;
+            return res.send(&"".as_bytes()).unwrap();
         }
         
         let sres = response_w.unwrap();
         match sres.body() {
             &Some(ref vec) => {
-                let mut response = Self::Response::new();
                 
                 for header in sres.headers().iter() {
-                    response.headers_mut()
+                    res.headers_mut()
                         .set_raw(header.name().to_owned(), 
                             vec![header.value_string().as_bytes().to_vec()]);
                 }
                 
-                response.headers_mut().set(ContentLength(vec.len() as u64));
-                // TODO: need to optimize for live time problem
-                let tvec = vec.clone();
-                
-                response.set_body(tvec);
-
-                // here, if can not match any router, we need check static file service
-                // or response NotFound
-                
-                futures::future::ok(response)
+                return res.send(&vec[..]).unwrap();
             },
             &None => {
-                let response = Self::Response::new()
-                    .with_body("".as_bytes());
-
-                // here, if can not match any router, we need check static file service
-                // or response NotFound
-                
-                futures::future::ok(response)
+                return res.send(&"".as_bytes()).unwrap();
             }
         }
+        
     }
+    
 }
 
 

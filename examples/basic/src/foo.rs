@@ -31,7 +31,7 @@ impl Foo {
         println!("in test_post, raw_body: {:?}", req.body());
         
         let mut response = Response::new();
-        response.write_body("hello, I'am !".to_string());
+        response.write_body("hello, I'am post!".to_string());
         
         Ok(response)
     }
