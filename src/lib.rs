@@ -7,12 +7,12 @@ extern crate log;
 extern crate lazy_static;
 extern crate hyper;
 extern crate typemap;
-extern crate route_recognizer as recognizer;
 extern crate conduit_mime_types as mime_types;
 
 mod request;
 mod response;
 mod handler;
+mod recognizer;
 mod router_m;
 mod router;
 mod app;
