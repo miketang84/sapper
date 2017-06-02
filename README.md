@@ -4,7 +4,7 @@
  
 Sapper, a lightweight web framework, written in Rust.
 
-Sapper focuses on easy of use. It is alpha now and only compiled with **rust nightly**.
+Sapper focuses on easy of use. It can work with **stable** Rust (>= 1.17).
 
 
 ## Basic Example
@@ -31,35 +31,50 @@ or any other url to test it.
 
 1. [tiny](https://github.com/sappworks/sapper/tree/master/examples/tiny)
 2. [init_global](https://github.com/sappworks/sapper/tree/master/examples/init_global)
-3. [query params](https://github.com/sappworks/sapper_query_params/tree/master/examples/basic)
-4. [body params](https://github.com/sappworks/sapper_body_params/tree/master/examples/basic)
-5. [cookie](https://github.com/sappworks/sapper_cookie/tree/master/examples/basic)
+3. [query params](https://github.com/sappworks/sapper_query/tree/master/examples/basic)
+4. [body params](https://github.com/sappworks/sapper_body/tree/master/examples/basic)
+5. [session](https://github.com/sappworks/sapper_session/tree/master/examples/basic)
 6. [template rendering](https://github.com/sappworks/sapper_tmpl/tree/master/examples/basic)
-7. [simple logger](https://github.com/sappworks/sapper_request_basic_logger/tree/master/examples/basic)
+7. [simple logger](https://github.com/sappworks/sapper_logger/tree/master/examples/basic)
 7. [response json](https://github.com/sappworks/sapper_examples/tree/master/res_json)
-8. [mvc with sporm](https://github.com/sappworks/sapper_examples/tree/master/mvc_example)
-9. [mvc with diesel](https://github.com/sappworks/sapper_examples/tree/master/mvc_diesel_example)
 10. more continued...
 
 ## Basic Benchmark
 
-ThinkPad T410s  
-Intel(R) Core(TM) i5 CPU M 560 @ 2.67GHz   
-Single Thread (Using only one core)  
-Ubuntu 14.04 x86  
-
-about 3.5w qps.
-
 ```
-mike@spirit:~/GIT/wrk$ ./wrk -t2 -c400 -d30s http://127.0.0.1:1337
+mike@mike-Vostro-3653:~/works2/wrk$ uname -a
+Linux mike-Vostro-3653 4.10.0-21-generic #23-Ubuntu SMP Fri Apr 28 16:14:22 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+
+
+mike@mike-Vostro-3653:~/works2/wrk$ cat /proc/cpuinfo 
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 94
+model name	: Intel(R) Core(TM) i3-6100 CPU @ 3.70GHz
+cpu MHz		: 832.183
+cache size	: 3072 KB
+bogomips	: 7392.00
+...
+
+
+mike@mike-Vostro-3653:~/works2/sapper/examples/tiny$ cargo run --release
+    Finished release [optimized] target(s) in 36.27 secs
+     Running `target/release/tiny`
+Listening on http://127.0.0.1:1337
+
+output: hello, world!
+
+
+mike@mike-Vostro-3653:~/works2/wrk$ ./wrk -t2 -c100 -d30s http://127.0.0.1:1337
 Running 30s test @ http://127.0.0.1:1337
-  2 threads and 400 connections
+  2 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    10.98ms  427.68us  19.41ms   94.67%
-    Req/Sec    18.29k   589.28    19.61k    82.17%
-  1092800 requests in 30.03s, 132.36MB read
-Requests/sec:  36393.03
-Transfer/sec:      4.41MB
+    Latency    21.73us  139.92us  16.02ms   99.87%
+    Req/Sec   235.94k    26.75k  259.73k    76.33%
+  7045973 requests in 30.04s, 598.04MB read
+Requests/sec: 234536.10
+Transfer/sec:     19.91MB
 ```
 
 ## Features
@@ -87,7 +102,7 @@ fn (&mut Request) -> Result<()>;  // before plugin
 fn (&Request, &mut Response) -> Result<()>; // after plugin
 ```
 
-can be thought as Sapper's plugin. Sample template please refer [sapper_query_params](https://github.com/sappworks/sapper_query_params) plugin.
+can be thought as Sapper's plugin. Sample template please refer [sapper_query](https://github.com/sappworks/sapper_query) plugin.
 
 ### Typed
 
@@ -119,10 +134,10 @@ In Sapper, nearly every important thing is a `Type`. They are:
 
 ## Plugins
 
-- [ReqQueryParams](https://github.com/sappworks/sapper_query_params)  parsing query string for req;
-- [ReqBodyParams](https://github.com/sappworks/sapper_body_params) parsing body parameters for req, including url form encoded, json type, json to struct macro;
-- [ReqBasicLogger](https://github.com/sappworks/sapper_request_basic_logger) record request and caculate its time;
-- [SessionCookie](https://github.com/sappworks/sapper_cookie) a cookie plugin, and else supply a helper set_cookie function;
+- [QueryParams](https://github.com/sappworks/sapper_query)  parsing query string for req;
+- [BodyParams](https://github.com/sappworks/sapper_body) parsing body parameters for req, including url form encoded, json type, json to struct macro;
+- [Logger](https://github.com/sappworks/sapper_logger) record request and caculate its time;
+- [SapperSession](https://github.com/sappworks/sapper_session) a cookie plugin, and else supply a helper set_cookie function;
 
 
 ## Components
