@@ -75,8 +75,8 @@ impl Params {
         self.map.insert(key, value);
     }
 
-    pub fn get(&self, key: &str) -> Option<&str> {
-        self.map.get(key).map(|s| &s[..])
+    pub fn get(&self, key: &str) -> Option<Vec<&str>> {
+        self.map.get(key).map(|s| vec![&s[..]])
     }
 
     pub fn iter<'a>(&'a self) -> Iter<'a> {
