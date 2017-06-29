@@ -193,14 +193,14 @@ impl Handler for SapperApp {
                     },
                     Err(_) => {
                         *res.status_mut() = StatusCode::NotFound;
-                        return res.send(&"".as_bytes()).unwrap();
+                        return res.send(&"404 Not Found".as_bytes()).unwrap();
                     }
                 }
             }
         
             // return 404 NotFound now
             *res.status_mut() = StatusCode::NotFound;
-            return res.send(&"".as_bytes()).unwrap();
+            return res.send(&"404 Not Found".as_bytes()).unwrap();
         }
         
         let sres = response_w.unwrap();
