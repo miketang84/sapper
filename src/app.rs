@@ -203,6 +203,7 @@ impl Handler for SapperApp {
         }
         
         let sres = response_w.unwrap();
+        *res.status_mut() = sres.status();
         match sres.body() {
             &Some(ref vec) => {
                 
