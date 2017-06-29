@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
+#![allow(warnings)]
 
-#[allow(warnings)]
 #[macro_use]
 extern crate log;
 #[macro_use]
