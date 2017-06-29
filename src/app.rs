@@ -192,6 +192,7 @@ impl Handler for SapperApp {
                         return res.send(&file_u8vec[..]).unwrap();
                     },
                     Err(_) => {
+                        *res.status_mut() = StatusCode::NotFound;
                         return res.send(&"".as_bytes()).unwrap();
                     }
                 }
