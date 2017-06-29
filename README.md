@@ -37,7 +37,9 @@ or any other url to test it.
 6. [template rendering](https://github.com/sappworks/sapper_tmpl/tree/master/examples/basic)
 7. [simple logger](https://github.com/sappworks/sapper_logger/tree/master/examples/basic)
 7. [response json](https://github.com/sappworks/sapper_examples/tree/master/res_json)
-10. more continued...
+10. [mvc diesel demo](https://github.com/sappworks/sapper_examples/tree/master/mvc_example)
+ 
+11.  more continued...
 
 ## Basic Benchmark
 
@@ -79,7 +81,6 @@ Transfer/sec:     19.91MB
 
 ## Features
 
-- Async, based on hyper mio branch;
 - Sapper supplies only basic framework;
 - Sapper only processes small request and response (with small request body, returning small response body) now;
 - Three level granularity (global, module, function handler) middleware controller and unified middleware presentation; 
