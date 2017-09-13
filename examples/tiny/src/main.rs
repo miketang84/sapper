@@ -7,14 +7,10 @@ extern crate log;
 
 use sapper::SapperApp;
 
-
-
 mod biz;
 use biz::Biz;
 mod foo;
 use foo::Foo;
-
-
 
 pub fn main() {
     env_logger::init().unwrap();
