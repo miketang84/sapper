@@ -6,6 +6,14 @@ Sapper, a lightweight web framework, written in Rust.
 
 Sapper focuses on easy of use. It can work with **stable** Rust (>= 1.17).
 
+## Import
+
+In Cargo.toml,
+
+```
+[dependencies]
+sapper = "0.1.0"
+```
 
 ## Basic Example
 
