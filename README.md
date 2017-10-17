@@ -6,13 +6,19 @@ Sapper, a lightweight web framework, written in Rust.
 
 Sapper focuses on easy of use. It can work with **stable** Rust (>= 1.17).
 
+## Tutorial
+
+Look into [json demo](https://github.com/sappworks/sapper_examples/tree/master/json_example), you can learn how to parse http parameters, and return json;
+
+Look into [mvc diesel demo](https://github.com/sappworks/sapper_examples/tree/master/mvc_example), you can learn how to use database, how to render template, and how to redirect.
+
 ## Import
 
 In Cargo.toml,
 
 ```
 [dependencies]
-sapper = "0.1.0"
+sapper = "0.1"
 ```
 
 ## Basic Example
@@ -44,7 +50,7 @@ or any other url to test it.
 5. [session](https://github.com/sappworks/sapper_session/tree/master/examples/basic)
 6. [template rendering](https://github.com/sappworks/sapper_tmpl/tree/master/examples/basic)
 7. [simple logger](https://github.com/sappworks/sapper_logger/tree/master/examples/basic)
-7. [response json](https://github.com/sappworks/sapper_examples/tree/master/res_json)
+8. [response json](https://github.com/sappworks/sapper_examples/tree/master/json_example)
 10. [mvc diesel demo](https://github.com/sappworks/sapper_examples/tree/master/mvc_example)
  
 11.  more continued...
@@ -147,15 +153,7 @@ In Sapper, nearly every important thing is a `Type`. They are:
 - [BodyParams](https://github.com/sappworks/sapper_body) parsing body parameters for req, including url form encoded, json type, json to struct macro;
 - [Logger](https://github.com/sappworks/sapper_logger) record request and caculate its time;
 - [SapperSession](https://github.com/sappworks/sapper_session) a cookie plugin, and else supply a helper set_cookie function;
-
-
-## Components
-
 - [Template](https://github.com/sappworks/sapper_tmpl) use tera to render template;
-- [sporm](https://github.com/sappworks/sporm) orm part can be used in sapper;
-- [spcodegen](https://github.com/sappworks/spcodegen) codegen helper part to sporm;
-
-
 
 
 ## Related Projects
