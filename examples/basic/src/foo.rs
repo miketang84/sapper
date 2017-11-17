@@ -41,9 +41,9 @@ impl Foo {
 // set before, after middleware, and add routers
 impl SapperModule for Foo {
     
-    fn before(&self, req: &mut Request) -> Result<()> {
+    fn before(&self, req: &mut Request) -> Result<Option<Response>> {
         println!("{}", "in Foo before.");
-        Ok(())
+        Ok(None)
     }
     
     fn after(&self, req: &Request, res: &mut Response) -> Result<()> {

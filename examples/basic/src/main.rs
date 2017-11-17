@@ -19,10 +19,10 @@ struct MyApp;
 // must impl it
 // total entry and exitice
 impl SapperAppShell for MyApp {
-    fn before(&self, req: &mut Request) -> Result<()> {
+    fn before(&self, req: &mut Request) -> Result<Option<Response>> {
         println!("{}", "in SapperAppShell before.");
         
-        Ok(())
+        Ok(None)
     }
     
     fn after(&self, req: &Request, res: &mut Response) -> Result<()> {

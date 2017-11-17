@@ -42,9 +42,9 @@ impl Biz {
 // set before, after middleware, and add routers
 impl SapperModule for Biz {
     
-    fn before(&self, req: &mut Request) -> Result<()> {
+    fn before(&self, req: &mut Request) -> Result<Option<Response>> {
         println!("{}", "in Biz before.");
-        Ok(())
+        Ok(None)
     }
     
     fn after(&self, req: &Request, res: &mut Response) -> Result<()> {
