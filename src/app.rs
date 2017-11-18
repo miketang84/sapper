@@ -145,11 +145,16 @@ impl SapperApp {
                         c(req)?; 
                     }
                     if let Some(ref shell) = shell {
-                        if let Some(response) = shell.before(req)? {
+                        if let Some(mut response) = shell.before(req)? {
+                            shell.after(req, &mut response)?;
                             return Ok(response)
                         }
                     }
-                    if let Some(response) = sm.before(req)? {
+                    if let Some(mut response) = sm.before(req)? {
+                        sm.after(req, &mut response)?;
+                        if let Some(ref shell) = shell {
+                            shell.after(req, &mut response)?;
+                        }
                         return Ok(response)
                     }
                     let mut response: SapperResponse = handler.handle(req)?;
