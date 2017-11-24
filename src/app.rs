@@ -52,8 +52,8 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 
 
 pub trait SapperModule: Sync + Send {
-    fn before(&self, req: &mut SapperRequest) -> Result<()> {
-        Ok(())
+    fn before(&self, req: &mut SapperRequest) -> Result<Option<SapperResponse>> {
+        Ok(None)
     }
     
     fn after(&self, req: &SapperRequest, res: &mut SapperResponse) -> Result<()> {
@@ -65,7 +65,7 @@ pub trait SapperModule: Sync + Send {
 }
 
 pub trait SapperAppShell {
-    fn before(&self, &mut SapperRequest) -> Result<()>;
+    fn before(&self, &mut SapperRequest) -> Result<Option<SapperResponse>>;
     fn after(&self, &SapperRequest, &mut SapperResponse) -> Result<()>;
 }
 
@@ -148,9 +148,18 @@ impl SapperApp {
                         c(req)?; 
                     }
                     if let Some(ref shell) = shell {
-                        shell.before(req)?;
+                        if let Some(mut response) = shell.before(req)? {
+                            shell.after(req, &mut response)?;
+                            return Ok(response)
+                        }
                     }
-                    sm.before(req)?;
+                    if let Some(mut response) = sm.before(req)? {
+                        sm.after(req, &mut response)?;
+                        if let Some(ref shell) = shell {
+                            shell.after(req, &mut response)?;
+                        }
+                        return Ok(response)
+                    }
                     let mut response: SapperResponse = handler.handle(req)?;
                     sm.after(req, &mut response)?;
                     if let Some(ref shell) = shell {
