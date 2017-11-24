@@ -34,14 +34,17 @@ pub mod status {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Error {
-    NotFound(String),
     InvalidConfig,
     InvalidRouterConfig,
     FileNotExist,
-    ShouldRedirect(String),
-    Break(String),
-    Fatal(String),
+    NotFound,
+    Break,          // 400
+    Unauthorized,   // 401
+    Forbidden,      // 403
+    TemporaryRedirect(String),     // 307
     Custom(String),
+    CustomHtml(String),
+    CustomJson(String),
 }
 
 
@@ -181,48 +184,80 @@ impl Handler for SapperApp {
         let (path, query) = sreq.uri();
 
         // pass req to routers, execute matched biz handler
-        let response_w = self.routers.handle_method(&mut sreq, &path).unwrap();
-        if response_w.is_err() {
-            
-            if self.static_service {
-                match simple_file_get(&path) {
-                    Ok((file_u8vec, file_mime)) => {
-                        res.headers_mut().set_raw("Content-Type", vec![file_mime.as_bytes().to_vec()]);
-                        
-                        return res.send(&file_u8vec[..]).unwrap();
+        let response_w = self.routers.handle_method(&mut sreq, &path);
+        match response_w {
+            Ok(sres) => {
+                *res.status_mut() = sres.status();
+                match sres.body() {
+                    &Some(ref vec) => {
+                        for header in sres.headers().iter() {
+                            res.headers_mut()
+                                .set_raw(header.name().to_owned(), 
+                                         vec![header.value_string().as_bytes().to_vec()]);
+                        }
+                        return res.send(&vec[..]).unwrap();
                     },
-                    Err(_) => {
-                        *res.status_mut() = StatusCode::NotFound;
-                        return res.send(&"404 Not Found".as_bytes()).unwrap();
+                    &None => {
+                        return res.send(&"".as_bytes()).unwrap();
                     }
                 }
-            }
-        
-            // return 404 NotFound now
-            *res.status_mut() = StatusCode::NotFound;
-            return res.send(&"404 Not Found".as_bytes()).unwrap();
-        }
-        
-        let sres = response_w.unwrap();
-        *res.status_mut() = sres.status();
-        match sres.body() {
-            &Some(ref vec) => {
-                
-                for header in sres.headers().iter() {
-                    res.headers_mut()
-                        .set_raw(header.name().to_owned(), 
-                            vec![header.value_string().as_bytes().to_vec()]);
-                }
-                
-                return res.send(&vec[..]).unwrap();
             },
-            &None => {
-                return res.send(&"".as_bytes()).unwrap();
+            Err(Error::NotFound) => {
+                if self.static_service {
+                    match simple_file_get(&path) {
+                        Ok((file_u8vec, file_mime)) => {
+                            res.headers_mut().set_raw("Content-Type", vec![file_mime.as_bytes().to_vec()]);
+                            return res.send(&file_u8vec[..]).unwrap();
+                        },
+                        Err(_) => {
+                            *res.status_mut() = StatusCode::NotFound;
+                            return res.send(&"404 Not Found".as_bytes()).unwrap();
+                        }
+                    }
+                }
+
+                // return 404 NotFound now
+                *res.status_mut() = StatusCode::NotFound;
+                return res.send(&"404 Not Found".as_bytes()).unwrap();
+            },
+            Err(Error::Break) => {
+                *res.status_mut() = StatusCode::BadRequest;
+                return res.send(&"Bad Request".as_bytes()).unwrap();
+            },
+            Err(Error::Unauthorized) => {
+                *res.status_mut() = StatusCode::Unauthorized;
+                return res.send(&"Unauthorized".as_bytes()).unwrap();
+            },
+            Err(Error::Forbidden) => {
+                *res.status_mut() = StatusCode::Forbidden;
+                return res.send(&"Forbidden".as_bytes()).unwrap();
+            },
+            Err(Error::TemporaryRedirect(new_uri)) => {
+                *res.status_mut() = StatusCode::TemporaryRedirect;
+                res.headers_mut().set_raw("Location", vec![new_uri.as_bytes().to_vec()]);
+                return res.send(&"Temporary Redirect".as_bytes()).unwrap();
+            },
+            Err(Error::Custom(ustr)) => {
+                *res.status_mut() = StatusCode::Ok;
+                return res.send(&ustr.as_bytes()).unwrap();
+            },
+            Err(Error::CustomHtml(html_str)) => {
+                *res.status_mut() = StatusCode::Ok;
+                res.headers_mut().set_raw("Content-Type", vec!["text/html".as_bytes().to_vec()]);
+                return res.send(&html_str.as_bytes()).unwrap();
+            },
+            Err(Error::CustomJson(json_str)) => {
+                *res.status_mut() = StatusCode::Ok;
+                res.headers_mut().set_raw("Content-Type", vec!["application/x-javascript".as_bytes().to_vec()]);
+                return res.send(&json_str.as_bytes()).unwrap();
+            },
+            Err(_) => {
+                *res.status_mut() = StatusCode::InternalServerError;
+                return res.send(&"InternalServerError".as_bytes()).unwrap();
             }
+
         }
-        
     }
-    
 }
 
 
