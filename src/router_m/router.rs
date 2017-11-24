@@ -95,14 +95,14 @@ impl Router {
     //     )
     // }
 
-    pub fn handle_method(&self, req: &mut SapperRequest, path: &str) -> Option<Result<SapperResponse>> {
+    pub fn handle_method(&self, req: &mut SapperRequest, path: &str) -> Result<SapperResponse> {
         if let Some(matched) = self.recognize(req.method(), path) {
             req.ext_mut().insert::<PathParams>(matched.params);
-            Some(matched.handler.handle(req))
+            matched.handler.handle(req)
         } else { 
             // panic!("router not matched!");
             // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
-            Some(Err(Error::NotFound(path.to_owned()))) 
+            Err(Error::NotFound) 
         }
     }
 }
