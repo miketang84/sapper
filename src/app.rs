@@ -83,7 +83,9 @@ pub struct SapperApp {
     // do simple static file service
     pub static_service: bool,
 
-    pub init_closure:   Option<Arc<GlobalInitClosure>>
+    pub init_closure:   Option<Arc<GlobalInitClosure>>,
+
+    pub not_found:      Option<String>
 }
 
 
@@ -96,7 +98,8 @@ impl SapperApp {
             shell: None,
             routers: Router::new(),
             static_service: true,
-            init_closure: None
+            init_closure: None,
+            not_found: None
         }
     }
     
@@ -122,6 +125,11 @@ impl SapperApp {
     
     pub fn init_global(&mut self, clos: GlobalInitClosure) -> &mut Self {
         self.init_closure = Some(Arc::new(clos));
+        self
+    }
+
+    pub fn not_found_page(&mut self, page: String) -> &mut Self {
+        self.not_found = Some(page);
         self
     }
     
@@ -211,14 +219,14 @@ impl Handler for SapperApp {
                         },
                         Err(_) => {
                             *res.status_mut() = StatusCode::NotFound;
-                            return res.send(&"404 Not Found".as_bytes()).unwrap();
+                            return res.send(self.not_found.to_owned().unwrap_or(String::from("404 Not Found")).as_bytes()).unwrap();
                         }
                     }
                 }
 
                 // return 404 NotFound now
                 *res.status_mut() = StatusCode::NotFound;
-                return res.send(&"404 Not Found".as_bytes()).unwrap();
+                return res.send(self.not_found.to_owned().unwrap_or(String::from("404 Not Found")).as_bytes()).unwrap();
             },
             Err(Error::Break) => {
                 *res.status_mut() = StatusCode::BadRequest;
