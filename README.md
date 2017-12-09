@@ -12,7 +12,7 @@ Look into [json demo](https://github.com/sappworks/sapper_examples/tree/master/j
 
 Look into [mvc diesel demo](https://github.com/sappworks/sapper_examples/tree/master/mvc_example), you can learn how to use database, how to render template, and how to redirect.
 
-[中文教程](https://github.com/sappworks/sapper/blob/master/README.md)
+[中文教程](https://github.com/sappworks/sapper/blob/master/Tutorial.md)
 
 ## Import
 
