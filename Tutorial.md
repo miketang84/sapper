@@ -2,7 +2,7 @@
 
 ### 前言
 
-Sapper 是一个轻量的 Web 框架，目的是为了方便使用。做个类比吧，这个框架的量级类似于 Python 的 Falcon，但会比 Falcon 的完全裸装更高一些，接近于 Falsk。
+Sapper 是一个轻量的 Web 框架，目的是为了方便使用。做个类比吧，这个框架的量级类似于 Python 的 Falcon，但会比 Falcon 的完全裸装更高一些，接近于 Flask。
 
 ### 介绍
 Sapper 主要依赖于 [Hyper 0.10.13](https://github.com/hyperium/hyper) 提供 http server，当异步能够使用的时候（Rust 标准库完成），会考虑改成异步模式。
