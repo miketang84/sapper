@@ -323,7 +323,55 @@ p {
 `Bar` 模块设置了一个中间件，直接返回错误，这种情况下，访问 `127.0.0.1:8080/bar` 会直接在中间件被返回，即得到那个全局变量 `global`。
 
 ##### demo 源码
-[https://github.com/sappworks/sapper_examples/tree/master/mvc_example](https://github.com/sappworks/sapper_examples/tree/master/sapper_demo)
+[https://github.com/sappworks/sapper_examples/tree/master/sapper_demo](https://github.com/sappworks/sapper_examples/tree/master/sapper_demo)
+
+#### 中间件和 Error 处理
+Sapper 的中间件和 Error 处理密切相关，下面是两个 trait 和 SapperResult 的源码：
+```rust
+type Result<T> = std::result::Result<T, Error>;
+
+trait SapperModule: Sync + Send {
+    fn before(&self, req: &mut SapperRequest) -> Result<()> {
+        Ok(())
+    }
+    
+    fn after(&self, req: &SapperRequest, res: &mut SapperResponse) -> Result<()> {
+        Ok(())
+    }
+    
+    fn router(&self, &mut SapperRouter) -> Result<()>;
+    
+}
+
+trait SapperAppShell {
+    fn before(&self, &mut SapperRequest) -> Result<()>;
+    fn after(&self, &SapperRequest, &mut SapperResponse) -> Result<()>;
+}
+```
+SapperModule 默认实现了 before 和 after。
+
+整个 Sapper 中间件的运行机制是 **请求 -> 全局 before -> 模块 before -> 模块对应路由的处理函数 -> 模块 after -> 全局 after -> 返回**，在这期间，如果出现 Error 那么就直接跳出正常后续操作，原路返回。例如一个请求被模块 before 挡住了，那么就直接跳出，根据 Error 类型向请求方返回数据。
+
+Sapper 的中间件正常返回值都是 `Ok(())`，意思是继续下去，如果返回 `Err(Error)` 就是直接跳出，根据 Error 类型进行处理，Error 类型如下：
+```rust
+pub enum Error {
+    InvalidConfig,
+    InvalidRouterConfig,
+    FileNotExist,
+    NotFound,
+    Break,          // 400
+    Unauthorized,   // 401
+    Forbidden,      // 403
+    TemporaryRedirect(String),     // 307
+    Custom(String),
+    CustomHtml(String),
+    CustomJson(String),
+}
+```
+Error 中带 String 的类型以及 NotFound 都是可以自定义返回值的
+，比如 `CustomHtml` 和 `CustomJson`，可以根据自己需求向其中填入对应的字符串，错误处理将根据类型不同返回不同的 head 信息。
+
+其他的类型返回的是固定的字符串，具体可以看源码 `app.rs` 第 [196](https://github.com/sappworks/sapper/blob/master/src/app.rs#L196) 行。
 
 #### Sapper 源码
 Sapper 源码中，SapperRequest 是对 hypper request 的魔改封装：
@@ -336,7 +384,7 @@ pub struct SapperRequest<'a, 'b: 'a> {
 这个 [typemap::TypeMap](https://github.com/reem/rust-typemap) 就是核心了，是一个安全的类型值存储 Map。Sapper 中的 Query，Form，Cookies，Json 等信息都存储在这个地方，有兴趣的话，可以看看源码。
 
 ### 开源应用
-无耻的放出了一个博客源码地址： [https://github.com/driftluo/MyBlog](https://github.com/driftluo/MyBlog)
+无耻地放出了一个博客源码地址： [https://github.com/driftluo/MyBlog](https://github.com/driftluo/MyBlog)
 
 ### Contribute
 欢迎加入 Sapper 社区，欢迎提供高质量的代码，高质量的思路。
