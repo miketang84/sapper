@@ -1,6 +1,6 @@
 [package]
 name = "sapper"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Mike Tang <miketang84@outlook.com>"]
 license = "MIT"
 description = "A web framework designed for easy use."
