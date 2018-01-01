@@ -56,8 +56,10 @@ impl<'a, 'b: 'a> SapperRequest<'a, 'b> {
                 
                 (path, query)
             },
-            _ => unreachable!()
-        
+            //_ => unreachable!()
+            _ => {
+                ("".to_owned(), None)
+            }
         }
     }
     
