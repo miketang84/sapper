@@ -14,6 +14,7 @@ pub use typemap::Key;
 pub use hyper::header::Headers;
 pub use hyper::header;
 pub use hyper::mime;
+pub use hyper::client::Client;
 pub use request::SapperRequest;
 pub use response::SapperResponse;
 pub use router_m::Router;
