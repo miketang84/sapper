@@ -374,7 +374,7 @@ Error 中带 String 的类型以及 NotFound 都是可以自定义返回值的
 其他的类型返回的是固定的字符串，具体可以看源码 `app.rs` 第 [196](https://github.com/sappworks/sapper/blob/master/src/app.rs#L196) 行。
 
 #### Sapper 源码
-Sapper 源码中，SapperRequest 是对 hypper request 的魔改封装：
+Sapper 源码中，SapperRequest 是对 hyper request 的魔改封装：
 ```rust
 pub struct SapperRequest<'a, 'b: 'a> {
     raw_req: Box<HyperRequest<'a, 'b>>,
