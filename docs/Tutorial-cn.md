@@ -10,7 +10,7 @@ Sapper 主要依赖于 [Hyper 0.10.13](https://github.com/hyperium/hyper) 提供
 Sapper 框架分为几个部分组成：
 
 - [Sapper](https://github.com/sappworks/sapper)：主库，export 几个重要的 trait 和 struct，主要负责路由解析、错误处理等基本的框架功能，提供一个小的静态文件服务器的功能，单一的 Sapper 库是可以作为框架使用的，只是少一些比较方便的功能，所有流式数据需要自己转成想要的格式；
-- [Sapper_std](https://github.com/sappworks/sapper_std)：对一些脚手架功能的包装，合并为 std 库，供用户使用，提供大量方便可用的 macro(宏)，同时将网络请求数据中的 Query/Form/Jsonbody 数据解析成方便使用的格式，可用很轻松的使用。
+- [Sapper_std](https://github.com/sappworks/sapper_std)：对一些脚手架功能的包装，合并为 std 库，供用户使用，提供大量方便可用的 macro(宏)，同时将网络请求数据中的 Query/Form/Jsonbody 数据解析成方便使用的格式，可以很轻松的使用。
 
 一般来说，在项目中，只需要引用上面两个库就可以正常工作了，当然，如果想要自己解析原始数据，也可以只引用 Sapper 主库。
 
