@@ -186,13 +186,11 @@ impl HttpService for SapperApp {
         let response_w = self.routers.handle_method(&mut sreq, &path);
         match response_w {
             Ok(sres) => {
-                *res.status_mut() = sres.status();
-                // TODO: this is unnecessary copy
-                for (key, value) in sres.headers().iter() {
-                    res.headers_mut().insert(key, value.clone());
-                }
-                sres.body().as_ref().map(|v| {
-                    res.send(v).unwrap();
+                let (status, headers, body) = sres.into_parts();
+                *res.status_mut() = status;
+                *res.headers_mut() = headers;
+                body.map(|v| {
+                    res.send(&v).unwrap();
                 });
             }
             Err(Error::NotFound) => {

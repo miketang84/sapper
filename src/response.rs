@@ -45,4 +45,13 @@ impl SapperResponse {
     pub fn write_raw_body(&mut self, body: Vec<u8>) {
         self.body = Some(body)
     }
+
+    pub fn into_parts(self) -> (StatusCode, HeaderMap, Option<Vec<u8>>) {
+        let SapperResponse {
+            status,
+            headers,
+            body,
+        } = self;
+        (status, headers, body)
+    }
 }
