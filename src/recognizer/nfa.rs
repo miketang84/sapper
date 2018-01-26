@@ -1,19 +1,24 @@
 use std::collections::HashSet;
 use std::u64;
-use self::CharacterClass::{Ascii, ValidChars, InvalidChars};
+use self::CharacterClass::{Ascii, InvalidChars, ValidChars};
 
-#[cfg(test)] use std::collections::BTreeSet;
+#[cfg(test)]
+use std::collections::BTreeSet;
 
 #[derive(PartialEq, Eq, Clone)]
 pub struct CharSet {
     low_mask: u64,
     high_mask: u64,
-    non_ascii: HashSet<char>
+    non_ascii: HashSet<char>,
 }
 
 impl CharSet {
     pub fn new() -> CharSet {
-        CharSet{ low_mask: 0, high_mask: 0, non_ascii: HashSet::new() }
+        CharSet {
+            low_mask: 0,
+            high_mask: 0,
+            non_ascii: HashSet::new(),
+        }
     }
 
     pub fn insert(&mut self, char: char) {
@@ -49,7 +54,7 @@ impl CharSet {
 pub enum CharacterClass {
     Ascii(u64, u64, bool),
     ValidChars(CharSet),
-    InvalidChars(CharSet)
+    InvalidChars(CharSet),
 }
 
 impl CharacterClass {
@@ -89,7 +94,6 @@ impl CharacterClass {
         }
     }
 
-
     pub fn matches(&self, char: char) -> bool {
         match *self {
             ValidChars(ref valid) => valid.contains(char),
@@ -126,12 +130,16 @@ impl CharacterClass {
 struct Thread {
     state: usize,
     captures: Vec<(usize, usize)>,
-    capture_begin: Option<usize>
+    capture_begin: Option<usize>,
 }
 
 impl Thread {
     pub fn new() -> Thread {
-        Thread{ state: 0, captures: Vec::new(), capture_begin: None }
+        Thread {
+            state: 0,
+            captures: Vec::new(),
+            capture_begin: None,
+        }
     }
 
     #[inline]
@@ -146,7 +154,10 @@ impl Thread {
     }
 
     pub fn extract<'a>(&self, source: &'a str) -> Vec<&'a str> {
-        self.captures.iter().map(|&(begin, end)| &source[begin..end]).collect()
+        self.captures
+            .iter()
+            .map(|&(begin, end)| &source[begin..end])
+            .collect()
     }
 }
 
@@ -158,7 +169,7 @@ pub struct State<T> {
     pub acceptance: bool,
     pub start_capture: bool,
     pub end_capture: bool,
-    pub metadata: Option<T>
+    pub metadata: Option<T>,
 }
 
 impl<T> PartialEq for State<T> {
@@ -188,7 +199,10 @@ pub struct Match<'a> {
 
 impl<'a> Match<'a> {
     pub fn new<'b>(state: usize, captures: Vec<&'b str>) -> Match<'b> {
-        Match{ state: state, captures: captures }
+        Match {
+            state: state,
+            captures: captures,
+        }
     }
 }
 
@@ -211,52 +225,59 @@ impl<T> NFA<T> {
         }
     }
 
-    pub fn process<'a, I, F>(&self, string: &'a str, mut ord: F)
-                             -> Result<Match<'a>, String>
-        where I: Ord, F: FnMut(usize) -> I
+    pub fn process<'a, I, F>(&self, string: &'a str, mut ord: F) -> Result<Match<'a>, String>
+    where
+        I: Ord,
+        F: FnMut(usize) -> I,
     {
-            let mut threads = vec![Thread::new()];
+        let mut threads = vec![Thread::new()];
 
-            for (i, char) in string.chars().enumerate() {
-                let next_threads = self.process_char(threads, char, i);
+        for (i, char) in string.chars().enumerate() {
+            let next_threads = self.process_char(threads, char, i);
 
-                if next_threads.is_empty() {
-                    return Err(format!("Couldn't process {}", string));
-                }
-
-                threads = next_threads;
+            if next_threads.is_empty() {
+                return Err(format!("Couldn't process {}", string));
             }
 
-            let returned = threads.into_iter().filter(|thread| {
-                self.get(thread.state).acceptance
-            });
+            threads = next_threads;
+        }
 
-            let thread = returned.fold(None, |prev, y| {
+        let returned = threads
+            .into_iter()
+            .filter(|thread| self.get(thread.state).acceptance);
+
+        let thread = returned
+            .fold(None, |prev, y| {
                 let y_v = ord(y.state);
                 match prev {
                     None => Some((y_v, y)),
                     Some((x_v, x)) => {
-                        if x_v < y_v {Some((y_v, y))} else {Some((x_v, x))}
+                        if x_v < y_v {
+                            Some((y_v, y))
+                        } else {
+                            Some((x_v, x))
+                        }
                     }
                 }
-            }).map(|p| p.1);
+            })
+            .map(|p| p.1);
 
-            match thread {
-                None => Err("The string was exhausted before reaching an \
-                             acceptance state".to_string()),
-                Some(mut thread) => {
-                    if thread.capture_begin.is_some() {
-                        thread.end_capture(string.len());
-                    }
-                    let state = self.get(thread.state);
-                    Ok(Match::new(state.index, thread.extract(string)))
+        match thread {
+            None => Err("The string was exhausted before reaching an \
+                         acceptance state"
+                .to_string()),
+            Some(mut thread) => {
+                if thread.capture_begin.is_some() {
+                    thread.end_capture(string.len());
                 }
+                let state = self.get(thread.state);
+                Ok(Match::new(state.index, thread.extract(string)))
             }
         }
+    }
 
     #[inline]
-    fn process_char<'a>(&self, threads: Vec<Thread>,
-                        char: char, pos: usize) -> Vec<Thread> {
+    fn process_char<'a>(&self, threads: Vec<Thread>, char: char, pos: usize) -> Vec<Thread> {
         let mut returned = Vec::with_capacity(threads.len());
 
         for mut thread in threads.into_iter() {
@@ -289,7 +310,6 @@ impl<T> NFA<T> {
                     returned.push(thread);
                 }
             }
-
         }
 
         returned
@@ -367,16 +387,21 @@ fn fork_thread<T>(thread: &Thread, state: &State<T>) -> Thread {
 }
 
 #[inline]
-fn capture<T>(nfa: &NFA<T>, thread: &mut Thread, current_state: usize,
-              next_state: usize, pos: usize) {
+fn capture<T>(
+    nfa: &NFA<T>,
+    thread: &mut Thread,
+    current_state: usize,
+    next_state: usize,
+    pos: usize,
+) {
     if thread.capture_begin == None && nfa.start_capture[next_state] {
         thread.start_capture(pos);
     }
 
-    if thread.capture_begin != None && nfa.end_capture[current_state] &&
-        next_state > current_state {
-            thread.end_capture(pos);
-        }
+    if thread.capture_begin != None && nfa.end_capture[current_state] && next_state > current_state
+    {
+        thread.end_capture(pos);
+    }
 }
 
 #[test]
@@ -391,7 +416,10 @@ fn basic_test() {
 
     let m = nfa.process("hello", |a| a);
 
-    assert!(m.unwrap().state == e, "You didn't get the right final state");
+    assert!(
+        m.unwrap().state == e,
+        "You didn't get the right final state"
+    );
 }
 
 #[test]
@@ -415,14 +443,14 @@ fn multiple_solutions() {
 #[test]
 fn multiple_paths() {
     let mut nfa = NFA::<()>::new();
-    let a = nfa.put(0, CharacterClass::valid("t"));   // t
-    let b1 = nfa.put(a, CharacterClass::valid("h"));  // th
+    let a = nfa.put(0, CharacterClass::valid("t")); // t
+    let b1 = nfa.put(a, CharacterClass::valid("h")); // th
     let c1 = nfa.put(b1, CharacterClass::valid("o")); // tho
     let d1 = nfa.put(c1, CharacterClass::valid("m")); // thom
     let e1 = nfa.put(d1, CharacterClass::valid("a")); // thoma
     let f1 = nfa.put(e1, CharacterClass::valid("s")); // thomas
 
-    let b2 = nfa.put(a, CharacterClass::valid("o"));  // to
+    let b2 = nfa.put(a, CharacterClass::valid("o")); // to
     let c2 = nfa.put(b2, CharacterClass::valid("m")); // tom
 
     nfa.acceptance(f1);
@@ -442,12 +470,12 @@ fn multiple_paths() {
 #[test]
 fn repetitions() {
     let mut nfa = NFA::<()>::new();
-    let a = nfa.put(0, CharacterClass::valid("p"));   // p
-    let b = nfa.put(a, CharacterClass::valid("o"));   // po
-    let c = nfa.put(b, CharacterClass::valid("s"));   // pos
-    let d = nfa.put(c, CharacterClass::valid("t"));   // post
-    let e = nfa.put(d, CharacterClass::valid("s"));   // posts
-    let f = nfa.put(e, CharacterClass::valid("/"));   // posts/
+    let a = nfa.put(0, CharacterClass::valid("p")); // p
+    let b = nfa.put(a, CharacterClass::valid("o")); // po
+    let c = nfa.put(b, CharacterClass::valid("s")); // pos
+    let d = nfa.put(c, CharacterClass::valid("t")); // post
+    let e = nfa.put(d, CharacterClass::valid("s")); // posts
+    let f = nfa.put(e, CharacterClass::valid("/")); // posts/
     let g = nfa.put(f, CharacterClass::invalid("/")); // posts/[^/]
     nfa.put_state(g, g);
 
@@ -465,16 +493,16 @@ fn repetitions() {
 #[test]
 fn repetitions_with_ambiguous() {
     let mut nfa = NFA::<()>::new();
-    let a  = nfa.put(0, CharacterClass::valid("p"));   // p
-    let b  = nfa.put(a, CharacterClass::valid("o"));   // po
-    let c  = nfa.put(b, CharacterClass::valid("s"));   // pos
-    let d  = nfa.put(c, CharacterClass::valid("t"));   // post
-    let e  = nfa.put(d, CharacterClass::valid("s"));   // posts
-    let f  = nfa.put(e, CharacterClass::valid("/"));   // posts/
+    let a = nfa.put(0, CharacterClass::valid("p")); // p
+    let b = nfa.put(a, CharacterClass::valid("o")); // po
+    let c = nfa.put(b, CharacterClass::valid("s")); // pos
+    let d = nfa.put(c, CharacterClass::valid("t")); // post
+    let e = nfa.put(d, CharacterClass::valid("s")); // posts
+    let f = nfa.put(e, CharacterClass::valid("/")); // posts/
     let g1 = nfa.put(f, CharacterClass::invalid("/")); // posts/[^/]
-    let g2 = nfa.put(f, CharacterClass::valid("n"));   // posts/n
-    let h2 = nfa.put(g2, CharacterClass::valid("e"));  // posts/ne
-    let i2 = nfa.put(h2, CharacterClass::valid("w"));  // posts/new
+    let g2 = nfa.put(f, CharacterClass::valid("n")); // posts/n
+    let h2 = nfa.put(g2, CharacterClass::valid("e")); // posts/ne
+    let i2 = nfa.put(h2, CharacterClass::valid("w")); // posts/new
 
     nfa.put_state(g1, g1);
 
