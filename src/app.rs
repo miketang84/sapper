@@ -187,18 +187,13 @@ impl HttpService for SapperApp {
         match response_w {
             Ok(sres) => {
                 *res.status_mut() = sres.status();
-                match sres.body() {
-                    &Some(ref vec) => {
-                        // TODO: this is unnecessary copy
-                        for (key, value) in sres.headers().iter() {
-                            res.headers_mut().insert(key, value.clone());
-                        }
-                        return res.send(&vec[..]).unwrap();
-                    }
-                    &None => {
-                        return res.send(b"").unwrap();
-                    }
+                // TODO: this is unnecessary copy
+                for (key, value) in sres.headers().iter() {
+                    res.headers_mut().insert(key, value.clone());
                 }
+                sres.body().as_ref().map(|v| {
+                    res.send(v).unwrap();
+                });
             }
             Err(Error::NotFound) => {
                 if self.static_service {
