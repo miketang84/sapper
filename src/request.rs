@@ -42,26 +42,10 @@ impl SapperRequest {
     // TODO: optimize to (&str, Option<&str>)
     // uri() -> (path, query)
     pub fn uri(&self) -> (String, Option<String>) {
-        unimplemented!()
-        // match self.raw_req.uri {
-        //     RequestUri::AbsolutePath(ref uri) => {
-
-        //         let pathvec: Vec<&str> = uri[..].split('?').collect();
-        //         let path = pathvec[0].to_owned();
-        //         let mut query = None;
-
-        //         // if has query_string
-        //         if pathvec.len() > 1 {
-        //             query = Some(pathvec[1].to_owned());
-        //         }
-
-        //         (path, query)
-        //     },
-        //     //_ => unreachable!()
-        //     _ => {
-        //         ("".to_owned(), None)
-        //     }
-        // }
+        let uri: Uri = self.raw_req.path().parse().expect("invalide uir");
+        let path = uri.path().to_owned();
+        let query = uri.query().map(|s| s.to_owned());
+        (path, query)
     }
 
     //    pub fn query(&self) -> Option<&str> {
