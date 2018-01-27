@@ -2,8 +2,8 @@ use std::collections::HashSet;
 use std::u64;
 use self::CharacterClass::{Ascii, InvalidChars, ValidChars};
 
-#[cfg(test)]
-use std::collections::BTreeSet;
+// #[cfg(test)]
+// use std::collections::BTreeSet;
 
 #[derive(PartialEq, Eq, Clone)]
 pub struct CharSet {
@@ -57,6 +57,7 @@ pub enum CharacterClass {
     InvalidChars(CharSet),
 }
 
+#[allow(unused)]
 impl CharacterClass {
     pub fn any() -> CharacterClass {
         Ascii(u64::MAX, u64::MAX, true)

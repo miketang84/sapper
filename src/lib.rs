@@ -1,11 +1,8 @@
-#![allow(unused_variables)]
-#![allow(warnings)]
-
 extern crate conduit_mime_types as mime_types;
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate log;
+// #[macro_use]
+// extern crate log;
 extern crate may_http;
 extern crate typemap;
 

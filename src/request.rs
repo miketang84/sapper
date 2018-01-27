@@ -1,14 +1,10 @@
-use std::net::SocketAddr;
 use std::io::Read;
 
-use may_http::server::Request as RawRequest;
-use may_http::server::RequestHeaders;
-use http::Method;
-use http::Version;
-use http::header::HeaderMap;
-use http::Uri;
 use typemap::TypeMap;
+use http::{HeaderMap, Method, Version};
+use may_http::server::Request as RawRequest;
 
+// TODO: this struct is unnecessary exist, use the raw Request from may_http
 pub struct SapperRequest {
     raw_req: RawRequest,
     ext: TypeMap,
@@ -27,7 +23,7 @@ impl SapperRequest {
     //     self.raw_req.remote_addr
     // }
 
-    pub fn method(&self) -> Method {
+    pub fn method(&self) -> &Method {
         self.raw_req.method()
     }
 
@@ -35,16 +31,15 @@ impl SapperRequest {
         self.raw_req.version()
     }
 
-    pub fn headers(&self) -> RequestHeaders {
+    pub fn headers(&self) -> &HeaderMap {
         self.raw_req.headers()
     }
 
-    // TODO: optimize to (&str, Option<&str>)
     // uri() -> (path, query)
-    pub fn uri(&self) -> (String, Option<String>) {
-        let uri: Uri = self.raw_req.path().parse().expect("invalide uir");
-        let path = uri.path().to_owned();
-        let query = uri.query().map(|s| s.to_owned());
+    pub fn uri(&self) -> (&str, Option<&str>) {
+        let uri = self.raw_req.uri();
+        let path = uri.path();
+        let query = uri.query();
         (path, query)
     }
 

@@ -45,11 +45,11 @@ pub enum Error {
 pub type Result<T> = ::std::result::Result<T, Error>;
 
 pub trait SapperModule: Sync + Send {
-    fn before(&self, req: &mut SapperRequest) -> Result<()> {
+    fn before(&self, _req: &mut SapperRequest) -> Result<()> {
         Ok(())
     }
 
-    fn after(&self, req: &SapperRequest, res: &mut SapperResponse) -> Result<()> {
+    fn after(&self, _req: &SapperRequest, _res: &mut SapperResponse) -> Result<()> {
         Ok(())
     }
 
@@ -180,7 +180,7 @@ impl SapperApp {
 impl HttpService for SapperApp {
     fn handle(&self, req: Request, mut res: Response) {
         let mut sreq = SapperRequest::new(req);
-        let (path, query) = sreq.uri();
+        let path = sreq.uri().0.to_owned();
 
         // pass req to routers, execute matched biz handler
         let response_w = self.routers.handle_method(&mut sreq, &path);
