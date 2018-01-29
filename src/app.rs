@@ -170,7 +170,7 @@ impl SapperApp {
         let addr = self.address.clone() + ":" + &self.port.to_string();
         //let self_box = Arc::new(Box::new(self));
 
-        let server = HttpServer(self)
+        let server = HttpServer::new(self)
             .start(&addr[..])
             .expect("start http server");
         server.wait();
@@ -178,7 +178,7 @@ impl SapperApp {
 }
 
 impl HttpService for SapperApp {
-    fn handle(&self, req: Request, mut res: Response) {
+    fn handle(&self, req: Request, res: &mut Response) {
         let mut sreq = SapperRequest::new(req);
         let path = sreq.uri().0.to_owned();
 
