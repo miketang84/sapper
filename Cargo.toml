@@ -10,11 +10,7 @@ documentation = "https://docs.rs/sapper"
 homepage = "https://github.com/sappworks/sapper"
 
 [dependencies]
-hyper = "0.10.10"
-log = "0.3.7"
-env_logger = "0.4.2"
+conduit-mime-types = "0.7"
+lazy_static = "1"
+may_http = { git = "https://github.com/rust-may/may_http.git" }
 typemap = "0.3.3"
-conduit-mime-types = "0.7.3"
-lazy_static = "0.2.8"
-
-
