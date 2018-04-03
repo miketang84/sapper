@@ -26,13 +26,13 @@ pub use handler::SapperHandler;
 pub struct PathParams;
 
 
-/// Status Codes
+/// Reexport Status Codes
 pub mod status {
     pub use hyper::status::StatusCode as Status;
     pub use hyper::status::StatusCode::*;
 }
 
-
+/// Sapper error enum
 #[derive(Debug, PartialEq, Clone)]
 pub enum Error {
     InvalidConfig,
@@ -48,44 +48,52 @@ pub enum Error {
     CustomJson(String),
 }
 
-
+/// Sapper result struct
 pub type Result<T> = ::std::result::Result<T, Error>; 
 
-
+/// Sapper module trait
+/// 3 methods: before, after, router
 pub trait SapperModule: Sync + Send {
+
+    /// module before filter, will be executed before handler
     fn before(&self, req: &mut SapperRequest) -> Result<()> {
         Ok(())
     }
     
+    /// module after filter, will be executed after handler
     fn after(&self, req: &SapperRequest, res: &mut SapperResponse) -> Result<()> {
         Ok(())
     }
     
+    /// module router method, used to write router collection of this module here
     fn router(&self, &mut SapperRouter) -> Result<()>;
     
 }
 
+/// Sapper appshell trait, used to place global before and after middlewares
 pub trait SapperAppShell {
     fn before(&self, &mut SapperRequest) -> Result<()>;
     fn after(&self, &SapperRequest, &mut SapperResponse) -> Result<()>;
 }
 
-pub type GlobalInitClosure = Box<Fn(&mut SapperRequest) -> Result<()> + 'static + Send + Sync>;
-pub type SapperAppShellType = Box<SapperAppShell + 'static + Send + Sync>;
+type GlobalInitClosure = Box<Fn(&mut SapperRequest) -> Result<()> + 'static + Send + Sync>;
+type SapperAppShellType = Box<SapperAppShell + 'static + Send + Sync>;
 
-
+/// Sapper app struct
 pub struct SapperApp {
+    // listen ip address
     pub address:        String,
+    // listen port
     pub port:           u32,
     // for app entry, global middeware
     pub shell:          Option<Arc<SapperAppShellType>>,
-    // for actually use to recognize
+    // routers actually use to recognize
     pub routers:        Router,
     // do simple static file service
     pub static_service: bool,
-
+    // if need init something, put them here
     pub init_closure:   Option<Arc<GlobalInitClosure>>,
-
+    // 404 not found page
     pub not_found:      Option<String>
 }
 
@@ -104,37 +112,43 @@ impl SapperApp {
         }
     }
     
+    // listen ip address
     pub fn address(&mut self, address: &str) -> &mut Self {
         self.address = address.to_owned();
         self
     }
     
+    // listen port
     pub fn port(&mut self, port: u32) -> &mut Self {
         self.port = port;
         self
     }
     
+    // do simple static file service
     pub fn static_service(&mut self, open: bool) -> &mut Self {
         self.static_service = open;
         self
     }
 
+    // with global middleware shell
     pub fn with_shell(&mut self, w: SapperAppShellType) -> &mut Self {
         self.shell = Some(Arc::new(w));
         self
     }
     
+    // init something, usually in global scope
     pub fn init_global(&mut self, clos: GlobalInitClosure) -> &mut Self {
         self.init_closure = Some(Arc::new(clos));
         self
     }
 
+    // define 404 not found page here
     pub fn not_found_page(&mut self, page: String) -> &mut Self {
         self.not_found = Some(page);
         self
     }
     
-    // add methods of this sapper module
+    // add routers of one module to global routers
     pub fn add_module(&mut self, sm: Box<SapperModule>) -> &mut Self {
         
         let mut router = SapperRouter::new();
@@ -173,6 +187,7 @@ impl SapperApp {
         self
     }
     
+    // run http server
     pub fn run_http(self) {
         
         let addr = self.address.clone() + ":" + &self.port.to_string();
@@ -186,7 +201,7 @@ impl SapperApp {
 
 
 impl Handler for SapperApp {
-
+    /// do actual handling for a request
     fn handle(&self, req: Request, mut res: Response) {
         
         let mut sreq = SapperRequest::new(Box::new(req));
@@ -270,14 +285,13 @@ impl Handler for SapperApp {
 }
 
 
-
-
 // this is very expensive in time
 // should make it as global 
 lazy_static! {
     static ref MTYPES: MimeTypes = { MimeTypes::new().unwrap() };
 }
 
+// a simple static file service
 fn simple_file_get(path: &str) -> Result<(Vec<u8>, String)> {
     let new_path;
     if &path[(path.len()-1)..] == "/" {
