@@ -4,7 +4,7 @@
  
 Sapper, a lightweight web framework, written in Rust.
 
-Sapper focuses on easy of use. It can work with **stable** Rust (>= 1.17).
+Sapper focuses on ergonomic usage and rapid development. It can work with **stable** Rust.
 
 Sapper now is based on hyper 0.10.13.
 
