@@ -5,7 +5,7 @@ use response::SapperResponse as Response;
 use app::Result;
 
 
-// all handler function in each module should fit this Handler trait
+/// All handlers should implement this Handler trait
 pub trait SapperHandler: Send + Sync + Any {
     fn handle(&self, &mut Request) -> Result<Response>;
 }
