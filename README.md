@@ -6,6 +6,8 @@ Sapper, a lightweight web framework, written in Rust.
 
 Sapper focuses on easy of use. It can work with **stable** Rust (>= 1.17).
 
+Sapper now is based on hyper 0.10.13.
+
 ## Tutorial
 
 Look into [json demo](https://github.com/sappworks/sapper_examples/tree/master/json_example), you can learn how to parse http parameters, and return json;
@@ -100,37 +102,23 @@ Transfer/sec:     19.91MB
 ## Features
 
 - Sapper supplies only basic framework;
-- Sapper only processes small request and response (with small request body, returning small response body) now;
 - Three level granularity (global, module, function handler) middleware controller and unified middleware presentation; 
 - Typesafe abstraction, keep the same spirit with hyper;
-- For easy using, will supply some convenient macros to help write business logic;
+- For easy using, will supply some convenient macros to help write business logics;
 - Global object cross requests;
 
 ## Philosophy
 
-Sapper's philosophy is plugined, typed, hierarchical control.
+Typed, hierarchical control, and middlewares.
 
-### Plugined
-
-Sapper's core contains only middleware/plugin system, router system, request and response definitions, and some other basic facilities. Nearly all practical features, such as query parameter, body parameter, cookie, session, json, xml, orm..., are supplied by the outer plugins.
-
-Sapper's plugin is very easy to write. One rust module realized a function on the prototype of 
-
-```rust
-fn (&mut Request) -> Result<()>;  // before plugin
-fn (&Request, &mut Response) -> Result<()>; // after plugin
-```
-
-can be thought as Sapper's plugin. Sample template please refer [sapper_query](https://github.com/sappworks/sapper_query) plugin.
 
 ### Typed
 
 In Sapper, nearly every important thing is a `Type`. They are:
 
 - Each module is a type, different modules are different types;
-- Every plugin supply 0~n types for handler getting values;
+- Every middleware supplies some (0 to n) types for handler getting values;
 - Inherited from hyper's typed spirit, all headers, mime and so on should use types for manipulation. 
-
 
 ### Hierarchical Control
 
@@ -138,6 +126,18 @@ In Sapper, nearly every important thing is a `Type`. They are:
 - Sapper forces you to seperate the router binding and the handler realization;
 - Sapper's plugin processor can be used in app level wrapper, module level wrapper, and each handler. These three level hierarchical controls make it flexible to construct your business.
 
+### Middlewares
+
+Sapper's core contains only router system, request and response definitions, middleware system, and some other basic facilities. Nearly all practical features, such as query parameter, body parameter, cookie, session, json, xml, orm..., are supplied by the corresponding middlewares.
+
+Sapper's middleware is very easy to write. One rust module realized a function on the prototype of 
+
+```rust
+fn (&mut Request) -> Result<()>;  // before plugin
+fn (&Request, &mut Response) -> Result<()>; // after plugin
+```
+
+can be thought as Sapper's middleware. Sample middleware: [sapper_query](https://github.com/sappworks/sapper_query).
 
 ## TODO
 
@@ -151,13 +151,13 @@ In Sapper, nearly every important thing is a `Type`. They are:
 
 
 
-## Plugins
+## Middlewares
 
-- [QueryParams](https://github.com/sappworks/sapper_query)  parsing query string for req;
-- [BodyParams](https://github.com/sappworks/sapper_body) parsing body parameters for req, including url form encoded, json type, json to struct macro;
-- [Logger](https://github.com/sappworks/sapper_logger) record request and caculate its time;
-- [SapperSession](https://github.com/sappworks/sapper_session) a cookie plugin, and else supply a helper set_cookie function;
-- [Template](https://github.com/sappworks/sapper_tmpl) use tera to render template;
+- [sapper_query](https://github.com/sappworks/sapper_query)  parsing query string for req;
+- [sapper_body](https://github.com/sappworks/sapper_body) parsing body parameters for req, including url form encoded, json type, json to struct macro;
+- [sapper_logger](https://github.com/sappworks/sapper_logger) record request and caculate its time;
+- [sapper_session](https://github.com/sappworks/sapper_session) a cookie plugin, and else supply a helper set_cookie function;
+- [sapper_tmpl](https://github.com/sappworks/sapper_tmpl) use tera to render template;
 
 
 ## Related Projects
