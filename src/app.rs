@@ -22,11 +22,11 @@ pub use router::SapperRouter;
 pub use handler::SapperHandler;
 
 
+/// Path parameter type
 #[derive(Clone)]
 pub struct PathParams;
 
-
-/// Reexport Status Codes
+/// Re-export Status Codes
 pub mod status {
     pub use hyper::status::StatusCode as Status;
     pub use hyper::status::StatusCode::*;
