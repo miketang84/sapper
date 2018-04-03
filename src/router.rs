@@ -5,20 +5,23 @@ use hyper::method::Method;
 use handler::SapperHandler;
 
 
-pub type InnerRouter = HashMap<Method, Vec<(&'static str, Arc<Box<SapperHandler>>)>>;
+type InnerRouter = HashMap<Method, Vec<(&'static str, Arc<Box<SapperHandler>>)>>;
 
+/// Sapper router struct
 pub struct SapperRouter {
     router: InnerRouter
 }
 
 
 impl SapperRouter {
+
     pub fn new() -> SapperRouter {
         SapperRouter {
             router: HashMap::new()
         }
     }
 
+    /// basic router method
     pub fn route<H>(&mut self, method: Method,
                        glob: &'static str, handler: H) -> &mut SapperRouter
     where H: SapperHandler + 'static {

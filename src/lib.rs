@@ -26,6 +26,8 @@ pub use app::SapperHandler;
 pub use app::SapperRouter;
 pub use app::{Result, Error, Key};
 pub use app::{header, status, mime};
+/// PathParams is the parameter type referring the parameters collected in url
 pub use app::PathParams;
+/// reexport hyper's Client to sapper level
 pub use app::Client;
 
