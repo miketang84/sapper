@@ -31,3 +31,4 @@ pub use app::PathParams;
 /// reexport hyper's Client to sapper level
 pub use app::Client;
 
+pub use recognizer::Params;
