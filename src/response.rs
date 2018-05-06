@@ -2,12 +2,19 @@ use hyper::status::StatusCode;
 use hyper::header::Headers;
 
 /// Sapper response struct
+#[derive(Debug, Clone)]
 pub struct SapperResponse {
     status: StatusCode,
     headers: Headers,
     body: Option<Vec<u8>>,
 }
 
+impl PartialEq for SapperResponse {
+    fn eq(&self, other: &Self) -> bool {
+        self.status() == other.status() && self.headers() == other.headers()
+            && self.body() == other.body()
+    }
+}
 
 impl SapperResponse {
     pub fn new() -> SapperResponse {

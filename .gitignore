@@ -1,2 +1,7 @@
+# Cargo or Rust
 target
 Cargo.lock
+
+# Editor Or IDE
+.idea/
+.vscode/
