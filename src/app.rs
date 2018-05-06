@@ -46,6 +46,7 @@ pub enum Error {
     Custom(String),
     CustomHtml(String),
     CustomJson(String),
+    CustomResponse(SapperResponse),
 }
 
 /// Sapper result struct
@@ -275,6 +276,17 @@ impl Handler for SapperApp {
                 res.headers_mut().set_raw("Content-Type", vec!["application/x-javascript".as_bytes().to_vec()]);
                 return res.send(&json_str.as_bytes()).unwrap();
             },
+            Err(Error::CustomResponse(response_entity)) => {
+                *res.status_mut() = response_entity.status();
+                res.headers_mut().clone_from(response_entity.headers());
+                return match *response_entity.body() {
+                    Some(ref data) => res.send(data).unwrap(),
+                    None => {
+                        let data = vec![0u8; 0];
+                        res.send(data.as_ref()).unwrap()
+                    }
+                };
+            }
             Err(_) => {
                 *res.status_mut() = StatusCode::InternalServerError;
                 return res.send(&"InternalServerError".as_bytes()).unwrap();
