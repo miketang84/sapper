@@ -17,13 +17,13 @@ mod router_m;
 mod router;
 mod app;
 
-pub use app::SapperApp;
-pub use app::SapperAppShell;
+pub use app::SapperApp as App;
+pub use app::SapperSmock as Smock;
 pub use app::SapperRequest as Request;
 pub use app::SapperResponse as Response;
-pub use app::SapperModule;
-pub use app::SapperHandler;
-pub use app::SapperRouter;
+pub use app::SapperModule as Module;
+pub use app::SapperHandler as Handler;
+pub use app::SapperRouter as Router;
 pub use app::{Result, Error, Key};
 pub use app::{header, status, mime};
 /// PathParams is the parameter type referring the parameters collected in url

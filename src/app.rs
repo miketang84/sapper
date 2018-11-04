@@ -70,14 +70,14 @@ pub trait SapperModule: Sync + Send {
     
 }
 
-/// Sapper appshell trait, used to place global before and after middlewares
-pub trait SapperAppShell {
+/// Sapper smock trait, used to place global before and after middlewares
+pub trait SapperSmock {
     fn before(&self, &mut SapperRequest) -> Result<()>;
     fn after(&self, &SapperRequest, &mut SapperResponse) -> Result<()>;
 }
 
 type GlobalInitClosure = Box<Fn(&mut SapperRequest) -> Result<()> + 'static + Send + Sync>;
-type SapperAppShellType = Box<SapperAppShell + 'static + Send + Sync>;
+type SapperSmockType = Box<SapperSmock + 'static + Send + Sync>;
 
 /// Sapper app struct
 pub struct SapperApp {
@@ -86,7 +86,7 @@ pub struct SapperApp {
     // listen port
     pub port:           u32,
     // for app entry, global middeware
-    pub shell:          Option<Arc<SapperAppShellType>>,
+    pub smock:          Option<Arc<SapperSmockType>>,
     // routers actually use to recognize
     pub routers:        Router,
     // do simple static file service
@@ -104,7 +104,7 @@ impl SapperApp {
         SapperApp {
             address: String::new(),
             port: 0,
-            shell: None,
+            smock: None,
             routers: Router::new(),
             static_service: true,
             init_closure: None,
@@ -130,9 +130,9 @@ impl SapperApp {
         self
     }
 
-    // with global middleware shell
-    pub fn with_shell(&mut self, w: SapperAppShellType) -> &mut Self {
-        self.shell = Some(Arc::new(w));
+    // with global middleware smock 
+    pub fn with_smock(&mut self, w: SapperSmockType) -> &mut Self {
+        self.smock = Some(Arc::new(w));
         self
     }
     
@@ -163,21 +163,21 @@ impl SapperApp {
                 let glob = glob.clone();
                 let handler = handler.clone();
                 let sm = sm.clone();
-                let shell = self.shell.clone();
+                let smock = self.smock.clone();
                 let init_closure = self.init_closure.clone();
                 
                 self.routers.route(method, glob, Arc::new(Box::new(move |req: &mut SapperRequest| -> Result<SapperResponse> {
                     if let Some(ref c) = init_closure {
                         c(req)?; 
                     }
-                    if let Some(ref shell) = shell {
-                        shell.before(req)?;
+                    if let Some(ref smock) = smock {
+                        smock.before(req)?;
                     }
                     sm.before(req)?;
                     let mut response: SapperResponse = handler.handle(req)?;
                     sm.after(req, &mut response)?;
-                    if let Some(ref shell) = shell {
-                        shell.after(req, &mut response)?;
+                    if let Some(ref smock) = smock {
+                        smock.after(req, &mut response)?;
                     }
                     Ok(response)
                 })));
