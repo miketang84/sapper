@@ -90,7 +90,7 @@ pub struct SapperApp {
     // routers actually use to recognize
     pub routers:        Router,
     // do simple static file service
-    pub static_service: bool,
+    pub static_file_service: bool,
     // if need init something, put them here
     pub init_closure:   Option<Arc<GlobalInitClosure>>,
     // 404 not found page
@@ -106,7 +106,7 @@ impl SapperApp {
             port: 0,
             smock: None,
             routers: Router::new(),
-            static_service: true,
+            static_file_service: true,
             init_closure: None,
             not_found: None
         }
@@ -125,8 +125,8 @@ impl SapperApp {
     }
     
     // do simple static file service
-    pub fn static_service(&mut self, open: bool) -> &mut Self {
-        self.static_service = open;
+    pub fn static_file_service(&mut self, open: bool) -> &mut Self {
+        self.static_file_service = open;
         self
     }
 
@@ -227,7 +227,7 @@ impl Handler for SapperApp {
                 }
             },
             Err(Error::NotFound) => {
-                if self.static_service {
+                if self.static_file_service {
                     match simple_file_get(&path) {
                         Ok((file_u8vec, file_mime)) => {
                             res.headers_mut().set_raw("Content-Type", vec![file_mime.as_bytes().to_vec()]);
