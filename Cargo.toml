@@ -17,4 +17,13 @@ typemap = "0.3.3"
 conduit-mime-types = "0.7.3"
 lazy_static = "0.2.8"
 
+[workspace]
+members = [
+  "middleware/sapper_query",
+  "middleware/sapper_body",
+  "middleware/sapper_session",
+  "middleware/sapper_tmpl",
+  "middleware/sapper_logger",
+  "library/sapper_std",
+]
 
