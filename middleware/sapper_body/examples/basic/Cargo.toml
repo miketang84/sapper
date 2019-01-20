@@ -1,0 +1,13 @@
+[package]
+name = "basic"
+version = "0.1.0"
+authors = ["Mike Tang <miketang84@outlook.com>"]
+
+[dependencies]
+sapper = { git="https://github.com/sappworks/sapper" }
+sapper_body = { path="../../" }
+log = "*"
+env_logger = "*"
+serde = "1.0.7"
+serde_json = "1.0.2"
+serde_derive = "1.0.7"

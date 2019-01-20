@@ -1,0 +1,15 @@
+[package]
+name = "sapper_session"
+version = "0.1.2"
+authors = ["Mike Tang <miketang84@outlook.com>"]
+license = "MIT"
+description = "Session plugin for sapper framework."
+readme = "README.md"
+repository = "https://github.com/sappworks/sapper"
+documentation = "https://docs.rs/sapper_session"
+homepage = "https://github.com/sappworks/sapper"
+
+[dependencies]
+sapper = {path = "../../"}
+cookie = "^0.10.1"
+time = "^0.1"

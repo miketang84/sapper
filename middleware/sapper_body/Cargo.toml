@@ -1,0 +1,17 @@
+[package]
+name = "sapper_body"
+version = "0.1.1"
+authors = ["Mike Tang <miketang84@outlook.com>"]
+license = "MIT"
+description = "Body parsing module for sapper web framework."
+readme = "README.md"
+repository = "https://github.com/sappworks/sapper"
+documentation = "https://docs.rs/sapper_body"
+homepage = "https://github.com/sappworks/sapper"
+
+[dependencies]
+sapper = {path = "../../"}
+url = "1.5"
+serde = "1.0"
+serde_json = "1.0"
+

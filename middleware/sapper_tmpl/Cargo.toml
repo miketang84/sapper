@@ -1,0 +1,19 @@
+[package]
+name = "sapper_tmpl"
+version = "0.1.2"
+authors = ["Mike Tang <miketang84@outlook.com>"]
+license = "MIT"
+description = "Template module for sapper web framework."
+readme = "README.md"
+repository = "https://github.com/sappworks/sapper"
+documentation = "https://docs.rs/sapper_tmpl"
+homepage = "https://github.com/sappworks/sapper"
+
+[dependencies]
+lazy_static = "1.0"
+tera = "0.11"
+notify = { version = "^4.0.0", optional = true }
+
+[features]
+default = []
+monitor = ["notify"]

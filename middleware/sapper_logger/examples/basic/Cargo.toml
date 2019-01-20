@@ -1,0 +1,10 @@
+[package]
+name = "basic"
+version = "0.1.0"
+authors = ["Mike Tang <miketang84@outlook.com>"]
+
+[dependencies]
+sapper = { git="https://github.com/sappworks/sapper" }
+sapper_logger = { path="../../" }
+log = "0.3.7"
+env_logger = "0.4.2"
