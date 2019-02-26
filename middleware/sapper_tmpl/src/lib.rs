@@ -12,13 +12,13 @@ lazy_static! {
     static ref TERA: RwLock<Tera> = RwLock::new(Tera::new("views/**/*").unwrap());
 }
 
-pub fn render(path: &str, context: &Context) -> String {
+pub fn render(path: &str, context: Context) -> String {
     #[cfg(feature = "monitor")]
     monitor();
 
     TERA.read()
         .and_then(|tera| {
-            Ok(tera.render(path, context).unwrap_or_else(|e| {
+            Ok(tera.render(path, &context).unwrap_or_else(|e| {
                 println!("rendering error: {:?}", e);
                 "rendering error".to_owned()
             }))

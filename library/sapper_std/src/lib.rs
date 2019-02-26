@@ -69,6 +69,20 @@ macro_rules! res_400 {
 }
 
 #[macro_export]
+macro_rules! res_404 {
+    ($info:expr) => ({
+        use sapper::Response;
+        use sapper::status;
+
+        let mut response = Response::new();
+        response.set_status(status::NotFound);
+        response.write_body($info.to_owned());
+
+        Ok(response)
+    })
+}
+
+#[macro_export]
 macro_rules! res_500 {
     ($info:expr) => ({
         use sapper::Response;
@@ -79,6 +93,20 @@ macro_rules! res_500 {
         response.write_body($info.to_owned());
 
         Ok(response)
+    })
+}
+
+
+#[macro_export]
+macro_rules! set_response_redirect {
+    ($response:expr, $redirect_uri:expr) => ({
+        use sapper::status;
+        use sapper::header::Location;
+
+        $response.set_status(status::Found);
+        //response.set_status(status::TemporaryRedirect);
+        $response.headers_mut().set(Location($redirect_uri.to_owned()));
+        $response.write_body(format!("redirect to {}", $redirect_uri));
     })
 }
 
@@ -288,4 +316,32 @@ macro_rules! t_param_parse_default {
         }
     })
 }
+
+
+// ============ Params ============
+#[macro_export]
+macro_rules! ext_type {
+    ($req:expr, $tykey:ty) => ({
+        match $req.ext().get::<$tykey>() {
+            Some(entity) => {
+                Some(entity)
+            },
+            None => None
+        }
+    })
+}
+
+
+#[macro_export]
+macro_rules! ext_type_owned {
+    ($req:expr, $tykey:ty) => ({
+        match $req.ext().get::<$tykey>() {
+            Some(entity) => {
+                Some(entity.clone())
+            },
+            None => None
+        }
+    })
+}
+
 

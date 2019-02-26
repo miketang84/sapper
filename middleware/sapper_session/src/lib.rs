@@ -62,7 +62,7 @@ pub fn set_cookie(res: &mut Response, ckey: String, val: String, domain: Option<
         cookie.set_secure(secure.unwrap());
     }
     if max_age.is_some() {
-        cookie.set_max_age(time::Duration::hours(max_age.unwrap()))
+        cookie.set_max_age(time::Duration::seconds(max_age.unwrap()))
     }
     
     res.headers_mut().set(SetCookie(vec![cookie.to_string()]));
