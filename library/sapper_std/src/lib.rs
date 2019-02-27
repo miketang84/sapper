@@ -317,8 +317,27 @@ macro_rules! t_param_parse_default {
     })
 }
 
+#[macro_export]
+macro_rules! t_arr_param {
+    ($params:expr, $field:expr) => ({
+        match $params.get($field) {
+            Some(ref arr) => *arr,
+            None =>  _missing_or_unrecognized! ($field)
+        }
+    })
+}
 
-// ============ Params ============
+#[macro_export]
+macro_rules! t_arr_param_default {
+    ($params:expr, $field:expr, $default:expr) => ({
+        match $params.get($field) {
+            Some(ref arr) => *arr,
+            None =>  _using_default! ($field, $default)
+        }
+    })
+}
+
+// ============ Ext Type Params ============
 #[macro_export]
 macro_rules! ext_type {
     ($req:expr, $tykey:ty) => ({

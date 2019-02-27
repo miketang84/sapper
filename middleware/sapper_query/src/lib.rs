@@ -18,6 +18,7 @@ pub fn parse(req: &mut Request) -> Result<()> {
     let (_, query) = req.uri();
     
     if query.is_none() {
+        req.ext_mut().insert::<QueryParams>(HashMap::new());
         return Ok(());
     }
     
