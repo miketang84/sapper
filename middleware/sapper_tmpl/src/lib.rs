@@ -6,11 +6,17 @@ extern crate tera;
 
 use tera::Tera;
 use std::sync::RwLock;
-pub use tera::Context;
+pub use tera::{
+    Context,
+    Value as TeraValue,
+    to_value,
+    Result as TeraResult
+};
 
 lazy_static! {
-    static ref TERA: RwLock<Tera> = RwLock::new(Tera::new("views/**/*").unwrap());
+    pub static ref TERA: RwLock<Tera> = RwLock::new(Tera::new("views/**/*").unwrap());
 }
+
 
 pub fn render(path: &str, context: Context) -> String {
     #[cfg(feature = "monitor")]

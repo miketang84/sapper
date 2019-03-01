@@ -15,8 +15,14 @@ pub use sapper_query::QueryParams;
 pub use sapper_body::FormParams;
 pub use sapper_body::JsonParams;
 pub use sapper_session::{ SessionVal, set_cookie };
-pub use sapper_tmpl::Context as WebContext;
-pub use sapper_tmpl::render;
+pub use sapper_tmpl::{
+    Context as WebContext,
+    TERA,
+    TeraResult,
+    TeraValue,
+    to_value,
+    render,
+};
 
 pub fn init(req: &mut Request, cookie_key: Option<&'static str>) -> Result<()> {
     sapper_logger::init(req)?;
@@ -333,6 +339,16 @@ macro_rules! t_arr_param_default {
         match $params.get($field) {
             Some(ref arr) => *arr,
             None =>  _using_default! ($field, $default)
+        }
+    })
+}
+
+#[macro_export]
+macro_rules! t_has_param {
+    ($params:expr, $field:expr) => ({
+        match $params.get($field) {
+            Some(_) => true,
+            None => false 
         }
     })
 }
