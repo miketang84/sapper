@@ -8,7 +8,7 @@ extern crate sapper_logger;
 extern crate serde;
 extern crate serde_json;
 
-use sapper::{Request, Response, Result};
+use sapper::{Request, Response, Result, Error as SapperError};
 
 pub use sapper::PathParams;
 pub use sapper_query::QueryParams;
@@ -46,59 +46,28 @@ pub fn finish(req: &Request, res: &mut Response) -> Result<()> {
 #[macro_export]
 macro_rules! res_redirect {
     ($redirect_uri:expr) => ({
-        use sapper::Response;
-        use sapper::status;
-        use sapper::header::Location;
-
-        let mut response = Response::new();
-        response.set_status(status::Found);
-        //response.set_status(status::TemporaryRedirect);
-        response.headers_mut().set(Location($redirect_uri.to_owned()));
-        response.write_body(format!("redirect to {}", $redirect_uri));
-
-        Ok(response)
+        Err(SapperError::Found($redirect_uri.to_string()))
     })
 }
 
 #[macro_export]
 macro_rules! res_400 {
     ($info:expr) => ({
-        use sapper::Response;
-        use sapper::status;
-
-        let mut response = Response::new();
-        response.set_status(status::BadRequest);
-        response.write_body($info.to_owned());
-
-        Ok(response)
+        Err(SapperError::Break($info.to_string()))
     })
 }
 
 #[macro_export]
 macro_rules! res_404 {
-    ($info:expr) => ({
-        use sapper::Response;
-        use sapper::status;
-
-        let mut response = Response::new();
-        response.set_status(status::NotFound);
-        response.write_body($info.to_owned());
-
-        Ok(response)
+    () => ({
+        Err(SapperError::NotFound)
     })
 }
 
 #[macro_export]
 macro_rules! res_500 {
     ($info:expr) => ({
-        use sapper::Response;
-        use sapper::status;
-
-        let mut response = Response::new();
-        response.set_status(status::InternalServerError);
-        response.write_body($info.to_owned());
-
-        Ok(response)
+        Err(SapperError::InternalServerError($info.to_string()))
     })
 }
 
@@ -183,6 +152,13 @@ macro_rules! res_html {
 }
 
 
+#[macro_export]
+macro_rules! res_html_before {
+    ($context:expr) => ({
+        Err(SapperError::CustomHtml($context))
+    })
+}
+
 // ============ Params ============
 
 #[macro_export]
@@ -192,7 +168,11 @@ macro_rules! get_params {
             Some(params) => {
                 params
             },
-            None => return res_400!("no params")
+            None => {
+                let info = "no params";
+                println!("{}", info);
+                return res_400!(info);
+            }
         }
     })
 }
@@ -225,7 +205,9 @@ macro_rules! get_json_params {
         match serde_json::from_value(get_params!($req, JsonParams).clone()) {
             Ok(val) => val,
             Err(_) => {
-                return res_400!("Json parameter not match to struct.");
+                let info = "Json parameter not match to struct.";
+                println!("{}", info);
+                return res_400!(info);
             }
         }
     })
@@ -237,8 +219,9 @@ macro_rules! t_cond {
         match $bool {
             true => (),
             false => {
-                println!("test param condition result: {}", $prompt);
-                return res_400!(format!("test param condition result: {}.", $prompt) );
+                let info = format!("test param condition result: {}", $prompt);
+                println!("{}", info);
+                return res_400!(info);
             }
         }
     })
@@ -247,8 +230,9 @@ macro_rules! t_cond {
 #[macro_export]
 macro_rules! _missing_or_unrecognized {
     ($field:expr) => ({
-        println!("missing or unrecognized parameter {}.", $field);
-        return res_400!(format!("missing or unrecognized parameter {}.", $field));
+        let info = format!("missing or unrecognized parameter {}.", $field);
+        println!("{}",info);
+        return res_400!(info);
     })
 }
 
@@ -295,8 +279,9 @@ macro_rules! t_param_parse {
                 match _t.parse::<$tykey>() {
                     Ok(output) => output,
                     Err(_) => {
-                        println!("parse parameter type error {}.", $field);
-                        return res_400!(format!("parse parameter type error {}.", $field));
+                        let info = format!("parse parameter type error {}.", $field);
+                        println!("{}", info);
+                        return res_400!(info);
                     }
                 }
             },

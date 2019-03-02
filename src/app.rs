@@ -39,9 +39,11 @@ pub enum Error {
     InvalidRouterConfig,
     FileNotExist,
     NotFound,
-    Break,          // 400
     Unauthorized,   // 401
     Forbidden,      // 403
+    Break(String),          // 400
+    InternalServerError(String),    // 500
+    Found(String),     // 301
     TemporaryRedirect(String),     // 307
     Custom(String),
     CustomHtml(String),
@@ -244,9 +246,10 @@ impl Handler for SapperApp {
                 *res.status_mut() = StatusCode::NotFound;
                 return res.send(self.not_found.to_owned().unwrap_or(String::from("404 Not Found")).as_bytes()).unwrap();
             },
-            Err(Error::Break) => {
+            Err(Error::Break(info)) => {
                 *res.status_mut() = StatusCode::BadRequest;
-                return res.send(&"Bad Request".as_bytes()).unwrap();
+                //return res.send(&"Bad Request".as_bytes()).unwrap();
+                return res.send(&info.as_bytes()).unwrap();
             },
             Err(Error::Unauthorized) => {
                 *res.status_mut() = StatusCode::Unauthorized;
@@ -255,6 +258,16 @@ impl Handler for SapperApp {
             Err(Error::Forbidden) => {
                 *res.status_mut() = StatusCode::Forbidden;
                 return res.send(&"Forbidden".as_bytes()).unwrap();
+            },
+            Err(Error::InternalServerError(info)) => {
+                *res.status_mut() = StatusCode::InternalServerError;
+                //return res.send(&"Internal Server Error".as_bytes()).unwrap();
+                return res.send(&info.as_bytes()).unwrap();
+            },
+            Err(Error::Found(new_uri)) => {
+                *res.status_mut() = StatusCode::Found;
+                res.headers_mut().set_raw("Location", vec![new_uri.as_bytes().to_vec()]);
+                return res.send(&"Found, Redirect".as_bytes()).unwrap();
             },
             Err(Error::TemporaryRedirect(new_uri)) => {
                 *res.status_mut() = StatusCode::TemporaryRedirect;
