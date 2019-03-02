@@ -28,7 +28,7 @@ pub struct PathParams;
 
 /// Re-export Status Codes
 pub mod status {
-    pub use hyper::status::StatusCode as Status;
+    pub use hyper::status::StatusCode;
     pub use hyper::status::StatusCode::*;
 }
 

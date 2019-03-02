@@ -23,6 +23,7 @@ pub use sapper_tmpl::{
     to_value,
     render,
 };
+pub use sapper_logger::log;
 
 pub fn init(req: &mut Request, cookie_key: Option<&'static str>) -> Result<()> {
     sapper_logger::init(req)?;
@@ -35,7 +36,7 @@ pub fn init(req: &mut Request, cookie_key: Option<&'static str>) -> Result<()> {
 
 
 pub fn finish(req: &Request, res: &mut Response) -> Result<()> {
-    sapper_logger::log(req, res)?;
+    sapper_logger::log(req, res.status())?;
 
     Ok(())
 }
@@ -158,6 +159,22 @@ macro_rules! res_html_before {
         Err(SapperError::CustomHtml($context))
     })
 }
+
+#[macro_export]
+macro_rules! res_xml_string {
+    ($context:expr) => ({
+        use sapper::Response;
+        use sapper::status::StatusCode;
+
+        let mut res = Response::new();
+        res.set_status(StatusCode::Ok);
+        res.headers_mut().set_raw("Content-Type", vec!["text/xml".as_bytes().to_vec()]);
+        res.write_body($context);
+
+        Ok(res)
+    })
+}
+
 
 // ============ Params ============
 
