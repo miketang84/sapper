@@ -4,7 +4,7 @@ extern crate time;
 extern crate sapper;
 
 
-use sapper::{Request, Response, Result, Key};
+use sapper::{Request, Result, Key};
 
 pub struct BasicLogger;
 impl Key for BasicLogger { type Value = u64; }
