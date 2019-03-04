@@ -23,7 +23,7 @@ pub use sapper_tmpl::{
     to_value,
     render,
 };
-pub use sapper_logger::log;
+pub use sapper_logger::splog;
 
 pub fn init(req: &mut Request, cookie_key: Option<&'static str>) -> Result<()> {
     sapper_logger::init(req)?;
@@ -36,7 +36,7 @@ pub fn init(req: &mut Request, cookie_key: Option<&'static str>) -> Result<()> {
 
 
 pub fn finish(req: &Request, res: &mut Response) -> Result<()> {
-    sapper_logger::log(req, res.status())?;
+    sapper_logger::splog(req, res.status())?;
 
     Ok(())
 }
@@ -187,7 +187,7 @@ macro_rules! get_params {
             },
             None => {
                 let info = "no params";
-                println!("{}", info);
+                info!("{}", info);
                 return res_400!(info);
             }
         }
@@ -223,7 +223,7 @@ macro_rules! get_json_params {
             Ok(val) => val,
             Err(_) => {
                 let info = "Json parameter not match to struct.";
-                println!("{}", info);
+                info!("{}", info);
                 return res_400!(info);
             }
         }
@@ -237,7 +237,7 @@ macro_rules! t_cond {
             true => (),
             false => {
                 let info = format!("test param condition result: {}", $prompt);
-                println!("{}", info);
+                info!("{}", info);
                 return res_400!(info);
             }
         }
@@ -248,7 +248,7 @@ macro_rules! t_cond {
 macro_rules! _missing_or_unrecognized {
     ($field:expr) => ({
         let info = format!("missing or unrecognized parameter {}.", $field);
-        println!("{}",info);
+        info!("{}",info);
         return res_400!(info);
     })
 }
@@ -256,7 +256,7 @@ macro_rules! _missing_or_unrecognized {
 #[macro_export]
 macro_rules! _using_default {
     ($field:expr, $default:expr) => ({
-        println!("missing or unrecognized parameter {}, using default {}.", $field, $default);
+        info!("missing or unrecognized parameter {}, using default {}.", $field, $default);
         // return default
         $default
     })
@@ -297,7 +297,7 @@ macro_rules! t_param_parse {
                     Ok(output) => output,
                     Err(_) => {
                         let info = format!("parse parameter type error {}.", $field);
-                        println!("{}", info);
+                        info!("{}", info);
                         return res_400!(info);
                     }
                 }

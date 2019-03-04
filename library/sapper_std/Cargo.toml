@@ -18,7 +18,6 @@ sapper_body = {path = "../../middleware/sapper_body"}
 sapper_session = {path = "../../middleware/sapper_session"}
 sapper_tmpl = {path = "../../middleware/sapper_tmpl"}
 sapper_logger = {path = "../../middleware/sapper_logger"}
- 
 
 [features]
 default = []

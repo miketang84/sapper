@@ -16,7 +16,7 @@ pub fn init(req: &mut Request) -> Result<()> {
     Ok(())
 }
 
-pub fn log(req: &Request, status: sapper::status::StatusCode) -> Result<()> {
+pub fn splog(req: &Request, status: sapper::status::StatusCode) -> Result<()> {
     let exit_time = time::precise_time_ns();
     let entry_time = *req.ext().get::<BasicLogger>().unwrap();
     let response_time_ms = (exit_time - entry_time) as f64 / 1000000.0;
