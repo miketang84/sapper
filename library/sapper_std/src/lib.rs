@@ -8,7 +8,7 @@ extern crate sapper_logger;
 extern crate serde;
 extern crate serde_json;
 
-use sapper::{Request, Response, Result, Error as SapperError};
+use sapper::{Request, Response, Result};
 
 pub use sapper::PathParams;
 pub use sapper_query::QueryParams;
