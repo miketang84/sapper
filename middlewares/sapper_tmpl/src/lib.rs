@@ -2,7 +2,6 @@
 extern crate lazy_static;
 #[cfg(feature = "monitor")]
 extern crate notify;
-extern crate tera;
 
 use tera::Tera;
 use std::sync::RwLock;

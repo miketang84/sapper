@@ -1,16 +1,17 @@
 [package]
 name = "sapper_logger"
-version = "0.1.1"
-authors = ["Mike Tang <miketang84@outlook.com>"]
+version = "0.2.0"
+authors = ["Mike Tang <daogangtang@gmail.com>"]
 license = "MIT"
 description = "Basic logger module for sapper web framework."
 readme = "README.md"
-repository = "https://github.com/sappworks/sapper"
-homepage = "https://github.com/sappworks/sapper"
+repository = "https://github.com/daogangtang/sapper"
+homepage = "https://github.com/daogangtang/sapper"
 documentation = "https://docs.rs/sapper_logger"
+edition = "2018"
 
 [dependencies]
 sapper = {path = "../../"}
-time = "0.1.37"
-log = "0.3.7"
+time = "0.1"
+log = "0.3"
 

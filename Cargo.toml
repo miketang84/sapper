@@ -1,29 +1,30 @@
 [package]
 name = "sapper"
-version = "0.1.5"
-authors = ["Mike Tang <miketang84@outlook.com>"]
+version = "0.2.0"
+authors = ["Mike Tang <daogangtang@gmail.com>"]
 license = "MIT"
 description = "A web framework designed for easy use."
 readme = "README.md"
-repository = "https://github.com/sappworks/sapper"
+repository = "https://github.com/daogangtang/sapper"
 documentation = "https://docs.rs/sapper"
-homepage = "https://github.com/sappworks/sapper"
+homepage = "https://github.com/daogangtang/sapper"
 
 [dependencies]
-hyper = "0.10.10"
-log = "0.3.7"
-env_logger = "0.4.2"
-typemap = "0.3.3"
-conduit-mime-types = "0.7.3"
-lazy_static = "0.2.8"
+hyper = "0.10"
+log = "0.3"
+env_logger = "0.4"
+typemap = "0.3"
+conduit-mime-types = "0.7"
+lazy_static = "0.2"
 
 [workspace]
 members = [
-  "middleware/sapper_query",
-  "middleware/sapper_body",
-  "middleware/sapper_session",
-  "middleware/sapper_tmpl",
-  "middleware/sapper_logger",
+  "middlewares/sapper_query",
+  "middlewares/sapper_body",
+  "middlewares/sapper_session",
+  "middlewares/sapper_tmpl",
+  "middlewares/sapper_logger",
   "library/sapper_std",
+  "examples/tiny",
 ]
 

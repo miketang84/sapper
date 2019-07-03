@@ -1,13 +1,14 @@
 [package]
 name = "sapper_body"
-version = "0.1.1"
-authors = ["Mike Tang <miketang84@outlook.com>"]
+version = "0.2.0"
+authors = ["Mike Tang <daogangtang@gmail.com>"]
 license = "MIT"
 description = "Body parsing module for sapper web framework."
 readme = "README.md"
-repository = "https://github.com/sappworks/sapper"
+repository = "https://github.com/daogangtang/sapper"
 documentation = "https://docs.rs/sapper_body"
-homepage = "https://github.com/sappworks/sapper"
+homepage = "https://github.com/daogangtang/sapper"
+edition = "2018"
 
 [dependencies]
 sapper = {path = "../../"}

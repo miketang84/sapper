@@ -1,9 +1,8 @@
 [package]
 name = "tiny"
 version = "0.1.0"
-authors = ["Mike Tang <miketang84@outlook.com>"]
+authors = ["Mike Tang <daogangtang@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 sapper = { path="../../" }
-log = "0.3.7"
-env_logger = "0.4.2"

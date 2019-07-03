@@ -1,11 +1,7 @@
 
-extern crate sapper;
-extern crate url;
-
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::*;
 use url::form_urlencoded;
-
 
 use sapper::{Request, Result, Key};
 
@@ -38,7 +34,6 @@ pub fn parse(req: &mut Request) -> Result<()> {
     }
     
     req.ext_mut().insert::<QueryParams>(deduplicated);
-
     
     Ok(())
 }

@@ -1,8 +1,5 @@
 #[macro_use]
 extern crate log;
-extern crate time;
-extern crate sapper;
-
 
 use sapper::{Request, Result, Key};
 

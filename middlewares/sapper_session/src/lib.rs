@@ -1,12 +1,6 @@
-
-extern crate cookie;
-extern crate sapper;
-extern crate time;
-
 use sapper::header::{Cookie, SetCookie};
 use sapper::{Request, Response, Result, Key};
 use cookie::Cookie as Cookie_M;
-
 
 pub struct SessionVal;
 impl Key for SessionVal { type Value = String; }

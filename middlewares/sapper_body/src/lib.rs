@@ -1,8 +1,3 @@
-extern crate sapper;
-extern crate url;
-extern crate serde;
-extern crate serde_json;
-
 use std::str;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::*;

@@ -1,13 +1,3 @@
-extern crate sapper;
-extern crate sapper_tmpl;
-extern crate sapper_query;
-extern crate sapper_body;
-extern crate sapper_session;
-extern crate sapper_logger;
-
-extern crate serde;
-extern crate serde_json;
-
 use sapper::{Request, Response, Result};
 
 pub use sapper::PathParams;
