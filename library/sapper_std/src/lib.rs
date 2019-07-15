@@ -55,21 +55,21 @@ macro_rules! res_redirect {
 #[macro_export]
 macro_rules! res_400 {
     ($info:expr) => ({
-        Err(SapperError::Break($info.to_string()))
+        Err(sapper::Error::Break($info.to_string()))
     })
 }
 
 #[macro_export]
 macro_rules! res_404 {
     () => ({
-        Err(SapperError::NotFound)
+        Err(sapper::Error::NotFound)
     })
 }
 
 #[macro_export]
 macro_rules! res_500 {
     ($info:expr) => ({
-        Err(SapperError::InternalServerError($info.to_string()))
+        Err(sapper::Error::InternalServerError($info.to_string()))
     })
 }
 
@@ -157,7 +157,7 @@ macro_rules! res_html {
 #[macro_export]
 macro_rules! res_html_before {
     ($context:expr) => ({
-        Err(SapperError::CustomHtml($context))
+        Err(sapper::Error::CustomHtml($context))
     })
 }
 
