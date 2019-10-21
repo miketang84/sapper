@@ -24,7 +24,7 @@ members = [
   "middlewares/sapper_session",
   "middlewares/sapper_tmpl",
   "middlewares/sapper_logger",
-  "library/sapper_std",
+  "std",
   "examples/tiny",
 ]
 
