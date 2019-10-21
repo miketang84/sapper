@@ -11,7 +11,6 @@ documentation = "https://docs.rs/sapper_logger"
 edition = "2018"
 
 [dependencies]
-sapper = {path = "../../"}
+sapper = {path = "../../", version = "0.2"}
 time = "0.1"
 log = "0.3"
-

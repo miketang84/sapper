@@ -11,8 +11,7 @@ homepage = "https://github.com/daogangtang/sapper"
 edition = "2018"
 
 [dependencies]
-sapper = {path = "../../"}
+sapper = {path = "../../", version = "0.2"}
 url = "1.5"
 serde = "1.0"
 serde_json = "1.0"
-

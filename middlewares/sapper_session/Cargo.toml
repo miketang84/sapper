@@ -11,6 +11,6 @@ documentation = "https://docs.rs/sapper_session"
 edition = "2018"
 
 [dependencies]
-sapper = {path = "../../"}
+sapper = {path = "../../", version = "0.2"}
 cookie = "0.10"
 time = "0.1"

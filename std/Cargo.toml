@@ -13,12 +13,12 @@ edition = "2018"
 [dependencies]
 serde = "1.0"
 serde_json = "1.0"
-sapper = {path = "../"}
-sapper_query = {path = "../middlewares/sapper_query"}
-sapper_body = {path = "../middlewares/sapper_body"}
-sapper_session = {path = "../middlewares/sapper_session"}
-sapper_tmpl = {path = "../middlewares/sapper_tmpl"}
-sapper_logger = {path = "../middlewares/sapper_logger"}
+sapper = {path = "../", version = "0.2"}
+sapper_query = {path = "../middlewares/sapper_query", version = "0.2"}
+sapper_body = {path = "../middlewares/sapper_body", version = "0.2"}
+sapper_session = {path = "../middlewares/sapper_session", version = "0.2"}
+sapper_tmpl = {path = "../middlewares/sapper_tmpl", version = "0.2"}
+sapper_logger = {path = "../middlewares/sapper_logger", version = "0.2"}
 
 [features]
 default = []
