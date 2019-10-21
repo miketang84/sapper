@@ -1,0 +1,10 @@
+## ChangeLog
+
+	v0.2.0
+	------
+	1. rename sapper::Smock to sapper::Armor;
+	2. put sapper_std and all build-in middlewares to sapper project as workspace members.
+
+	v0.1.0
+	------
+	1. initial release.
