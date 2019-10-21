@@ -21,32 +21,32 @@ impl Key for PathParams { type Value = Params; }
 /// for the Iron framework.
 pub struct Router {
     // The routers, specialized by method.
-    routers: HashMap<Method, Recognizer<Arc<Box<SapperHandler>>>>,
+    routers: HashMap<Method, Recognizer<Arc<Box<dyn SapperHandler>>>>,
     // Routes that accept any method.
-    wildcard: Recognizer<Arc<Box<SapperHandler>>>
+    wildcard: Recognizer<Arc<Box<dyn SapperHandler>>>
 }
 
 impl Router {
     pub fn new() -> Router {
-        Router {
-            routers: HashMap::new(),
-            wildcard: Recognizer::new()
-        }
+	Router {
+	    routers: HashMap::new(),
+	    wildcard: Recognizer::new()
+	}
     }
 
     pub fn route<S>(&mut self, method: Method,
-                       glob: S, handler: Arc<Box<SapperHandler>>) -> &mut Router
+		       glob: S, handler: Arc<Box<dyn SapperHandler>>) -> &mut Router
     where S: AsRef<str> {
-        self.routers.entry(method).or_insert(Recognizer::new())
-                    .add(glob.as_ref(), handler);
-        self
+	self.routers.entry(method).or_insert(Recognizer::new())
+		    .add(glob.as_ref(), handler);
+	self
     }
 
 
     fn recognize(&self, method: &Method, path: &str)
-                     -> Option<Match<&Arc<Box<SapperHandler>>>> {
-        self.routers.get(method).and_then(|router| router.recognize(path).ok())
-            .or(self.wildcard.recognize(path).ok())
+		     -> Option<Match<&Arc<Box<dyn SapperHandler>>>> {
+	self.routers.get(method).and_then(|router| router.recognize(path).ok())
+	    .or(self.wildcard.recognize(path).ok())
     }
 
     // fn handle_options(&self, path: &str) -> Response {
@@ -96,14 +96,13 @@ impl Router {
     // }
 
     pub fn handle_method(&self, req: &mut SapperRequest, path: &str) -> Result<SapperResponse> {
-        if let Some(matched) = self.recognize(req.method(), path) {
-            req.ext_mut().insert::<PathParams>(matched.params);
-            matched.handler.handle(req)
-        } else { 
-            // panic!("router not matched!");
-            // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
-            Err(Error::NotFound) 
-        }
+	if let Some(matched) = self.recognize(req.method(), path) {
+	    req.ext_mut().insert::<PathParams>(matched.params);
+	    matched.handler.handle(req)
+	} else {
+	    // panic!("router not matched!");
+	    // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
+	    Err(Error::NotFound)
+	}
     }
 }
-

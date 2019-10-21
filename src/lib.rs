@@ -18,7 +18,7 @@ mod router;
 mod app;
 
 pub use app::SapperApp as App;
-pub use app::SapperSmock as Smock;
+pub use app::SapperArmor as Armor;
 pub use app::SapperRequest as Request;
 pub use app::SapperResponse as Response;
 pub use app::SapperModule as Module;
