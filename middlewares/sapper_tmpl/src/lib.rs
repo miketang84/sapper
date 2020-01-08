@@ -3,19 +3,13 @@ extern crate lazy_static;
 #[cfg(feature = "monitor")]
 extern crate notify;
 
-use tera::Tera;
 use std::sync::RwLock;
-pub use tera::{
-    Context,
-    Value as TeraValue,
-    to_value,
-    Result as TeraResult
-};
+use tera::Tera;
+pub use tera::{to_value, Context, Result as TeraResult, Value as TeraValue};
 
 lazy_static! {
     pub static ref TERA: RwLock<Tera> = RwLock::new(Tera::new("views/**/*").unwrap());
 }
-
 
 pub fn render(path: &str, context: Context) -> String {
     #[cfg(feature = "monitor")]
@@ -33,9 +27,9 @@ pub fn render(path: &str, context: Context) -> String {
 
 #[cfg(feature = "monitor")]
 fn monitor() {
-    use std::sync::{Once, ONCE_INIT};
     use notify::{watcher, RecursiveMode, Watcher};
     use std::sync::mpsc::channel;
+    use std::sync::{Once, ONCE_INIT};
     use std::thread::spawn;
     use std::time::Duration;
 
