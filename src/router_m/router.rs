@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-
+use app::Error;
+use app::Key;
+use app::PathParams;
+use app::Result;
+use handler::SapperHandler;
+use hyper::method::Method;
 use request::SapperRequest;
 use response::SapperResponse;
-use handler::SapperHandler;
-use app::Result;
-use app::Error;
-use app::PathParams;
-use app::Key;
-use hyper::method::Method;
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
 
-impl Key for PathParams { type Value = Params; }
-
+impl Key for PathParams {
+    type Value = Params;
+}
 
 /// `Router` provides an interface for creating complex routes as middleware
 /// for the Iron framework.
@@ -23,30 +23,42 @@ pub struct Router {
     // The routers, specialized by method.
     routers: HashMap<Method, Recognizer<Arc<Box<dyn SapperHandler>>>>,
     // Routes that accept any method.
-    wildcard: Recognizer<Arc<Box<dyn SapperHandler>>>
+    wildcard: Recognizer<Arc<Box<dyn SapperHandler>>>,
 }
 
 impl Router {
     pub fn new() -> Router {
-	Router {
-	    routers: HashMap::new(),
-	    wildcard: Recognizer::new()
-	}
+        Router {
+            routers: HashMap::new(),
+            wildcard: Recognizer::new(),
+        }
     }
 
-    pub fn route<S>(&mut self, method: Method,
-		       glob: S, handler: Arc<Box<dyn SapperHandler>>) -> &mut Router
-    where S: AsRef<str> {
-	self.routers.entry(method).or_insert(Recognizer::new())
-		    .add(glob.as_ref(), handler);
-	self
+    pub fn route<S>(
+        &mut self,
+        method: Method,
+        glob: S,
+        handler: Arc<Box<dyn SapperHandler>>,
+    ) -> &mut Router
+    where
+        S: AsRef<str>,
+    {
+        self.routers
+            .entry(method)
+            .or_insert(Recognizer::new())
+            .add(glob.as_ref(), handler);
+        self
     }
 
-
-    fn recognize(&self, method: &Method, path: &str)
-		     -> Option<Match<&Arc<Box<dyn SapperHandler>>>> {
-	self.routers.get(method).and_then(|router| router.recognize(path).ok())
-	    .or(self.wildcard.recognize(path).ok())
+    fn recognize(
+        &self,
+        method: &Method,
+        path: &str,
+    ) -> Option<Match<&Arc<Box<dyn SapperHandler>>>> {
+        self.routers
+            .get(method)
+            .and_then(|router| router.recognize(path).ok())
+            .or(self.wildcard.recognize(path).ok())
     }
 
     // fn handle_options(&self, path: &str) -> Response {
@@ -96,13 +108,13 @@ impl Router {
     // }
 
     pub fn handle_method(&self, req: &mut SapperRequest, path: &str) -> Result<SapperResponse> {
-	if let Some(matched) = self.recognize(req.method(), path) {
-	    req.ext_mut().insert::<PathParams>(matched.params);
-	    matched.handler.handle(req)
-	} else {
-	    // panic!("router not matched!");
-	    // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
-	    Err(Error::NotFound)
-	}
+        if let Some(matched) = self.recognize(req.method(), path) {
+            req.ext_mut().insert::<PathParams>(matched.params);
+            matched.handler.handle(req)
+        } else {
+            // panic!("router not matched!");
+            // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
+            Err(Error::NotFound)
+        }
     }
 }

@@ -1,13 +1,11 @@
 pub mod nfa;
 
-use self::nfa::NFA;
 use self::nfa::CharacterClass;
-use std::collections::BTreeMap;
-use std::collections::btree_map;
+use self::nfa::NFA;
 use std::cmp::Ordering;
+use std::collections::btree_map;
+use std::collections::BTreeMap;
 use std::ops::Index;
-
-
 
 #[derive(Clone)]
 struct Metadata {
@@ -19,7 +17,12 @@ struct Metadata {
 
 impl Metadata {
     pub fn new() -> Metadata {
-        Metadata{ statics: 0, dynamics: 0, stars: 0, param_names: Vec::new() }
+        Metadata {
+            statics: 0,
+            dynamics: 0,
+            stars: 0,
+            param_names: Vec::new(),
+        }
     }
 }
 
@@ -51,7 +54,9 @@ impl PartialOrd for Metadata {
 
 impl PartialEq for Metadata {
     fn eq(&self, other: &Metadata) -> bool {
-        self.statics == other.statics && self.dynamics == other.dynamics && self.stars == other.stars
+        self.statics == other.statics
+            && self.dynamics == other.dynamics
+            && self.stars == other.stars
     }
 }
 
@@ -59,12 +64,14 @@ impl Eq for Metadata {}
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Params {
-    map: BTreeMap<String, String>
+    map: BTreeMap<String, String>,
 }
 
 impl Params {
     pub fn new() -> Params {
-        Params{ map: BTreeMap::new() }
+        Params {
+            map: BTreeMap::new(),
+        }
     }
 
     pub fn insert(&mut self, key: String, value: String) {
@@ -116,24 +123,30 @@ impl<'a> Iterator for Iter<'a> {
 
 pub struct Match<T> {
     pub handler: T,
-    pub params: Params
+    pub params: Params,
 }
 
 impl<T> Match<T> {
     pub fn new(handler: T, params: Params) -> Match<T> {
-        Match{ handler: handler, params: params }
+        Match {
+            handler: handler,
+            params: params,
+        }
     }
 }
 
 #[derive(Clone)]
 pub struct Router<T> {
     nfa: NFA<Metadata>,
-    handlers: BTreeMap<usize, T>
+    handlers: BTreeMap<usize, T>,
 }
 
 impl<T> Router<T> {
     pub fn new() -> Router<T> {
-        Router{ nfa: NFA::new(), handlers: BTreeMap::new() }
+        Router {
+            nfa: NFA::new(),
+            handlers: BTreeMap::new(),
+        }
     }
 
     pub fn add(&mut self, mut route: &str, dest: T) {
@@ -146,7 +159,9 @@ impl<T> Router<T> {
         let mut metadata = Metadata::new();
 
         for (i, segment) in route.split('/').enumerate() {
-            if i > 0 { state = nfa.put(state, CharacterClass::valid_char('/')); }
+            if i > 0 {
+                state = nfa.put(state, CharacterClass::valid_char('/'));
+            }
 
             if segment.len() > 0 && segment.as_bytes()[0] == b':' {
                 state = process_dynamic_segment(nfa, state);
@@ -188,8 +203,8 @@ impl<T> Router<T> {
 
                 let handler = self.handlers.get(&nfa_match.state).unwrap();
                 Ok(Match::new(handler, map))
-            },
-            Err(str) => Err(str)
+            }
+            Err(str) => Err(str),
         }
     }
 }
@@ -243,16 +258,16 @@ fn root_router() {
 
 #[test]
 fn empty_path() {
-  let mut router = Router::new();
-  router.add("/", 12);
-  assert_eq!(*router.recognize("").unwrap().handler, 12)
+    let mut router = Router::new();
+    router.add("/", 12);
+    assert_eq!(*router.recognize("").unwrap().handler, 12)
 }
 
 #[test]
 fn empty_route() {
-  let mut router = Router::new();
-  router.add("", 12);
-  assert_eq!(*router.recognize("/").unwrap().handler, 12)
+    let mut router = Router::new();
+    router.add("", 12);
+    assert_eq!(*router.recognize("/").unwrap().handler, 12)
 }
 
 #[test]
@@ -326,7 +341,6 @@ fn star() {
     assert_eq!(*m.handler, "test".to_string());
     assert_eq!(m.params, params("foo", "bar/foo"));
 }
-
 
 #[allow(dead_code)]
 fn params(key: &str, val: &str) -> Params {
